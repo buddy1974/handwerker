@@ -3,7 +3,14 @@
     "allow": [
       "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git)",
       "Bash(printf \"\\\\n\\\\n\\\\n\\\\n\\\\n\")",
-      "Bash(yes \"\")"
+      "Bash(yes \"\")",
+      "Bash(npm install:*)",
+      "Bash(while read:*)",
+      "Bash(do touch:*)",
+      "Bash(done)",
+      "Bash(npm uninstall:*)",
+      "Bash(node:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
