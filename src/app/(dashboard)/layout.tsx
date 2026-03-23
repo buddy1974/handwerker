@@ -1,5 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import Sidebar from '@/components/layout/Sidebar'
+import UserMenu from '@/components/layout/UserMenu'
 
 export default async function DashboardLayout({
   children,
@@ -10,14 +12,20 @@ export default async function DashboardLayout({
   if (!session) redirect('/login')
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <nav className="border-b border-gray-800 px-6 py-3 flex items-center justify-between">
-        <span className="text-white font-bold">HandwerkOS</span>
-        <span className="text-gray-400 text-sm">
-          {session.user.firstName} {session.user.lastName}
-        </span>
-      </nav>
-      <main className="p-6">{children}</main>
+    <div className="flex h-screen bg-gray-950 overflow-hidden">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header className="h-12 border-b border-gray-800 flex items-center justify-end px-6 flex-shrink-0">
+          <UserMenu
+            firstName={session.user.firstName}
+            lastName={session.user.lastName}
+            role={session.user.role}
+          />
+        </header>
+        <main className="flex-1 overflow-y-auto p-6">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }
