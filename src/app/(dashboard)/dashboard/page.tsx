@@ -84,8 +84,8 @@ export default async function DashboardPage() {
         <p className="text-gray-400 text-sm mt-1">Willkommen in HandwerkOS</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-gray-400 text-sm">Projekte</span>
             <FolderOpen size={16} className="text-gray-600" />
@@ -94,7 +94,7 @@ export default async function DashboardPage() {
           <p className="text-green-400 text-xs mt-1">{activeProjectCount} aktiv</p>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-gray-400 text-sm">Kunden</span>
             <Users size={16} className="text-gray-600" />
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
           <p className="text-gray-500 text-xs mt-1">gesamt</p>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-gray-400 text-sm">Heute gearbeitet</span>
             <Clock size={16} className="text-gray-600" />
