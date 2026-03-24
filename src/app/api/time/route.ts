@@ -79,6 +79,10 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const gpsNotes = body.gps
+    ? `GPS: ${body.gps.lat},${body.gps.lng} (±${body.gps.accuracy}m)`
+    : undefined
+
   const [entry] = await db
     .insert(timeEntries)
     .values({
@@ -89,6 +93,7 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       status: 'running',
       hourlyRate: '0',
+      notes: gpsNotes ?? parsed.data.notes,
     })
     .returning()
 

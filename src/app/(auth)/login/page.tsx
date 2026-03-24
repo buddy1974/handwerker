@@ -97,6 +97,18 @@ export default function LoginPage() {
           </button>
 
         </form>
+
+        <p className="text-center text-gray-600 text-xs mt-8">
+          Developed by{' '}
+          <a
+            href="https://maxpromo.digital"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-gray-400 transition-colors"
+          >
+            maxpromo.digital
+          </a>
+        </p>
       </div>
     </div>
   )
