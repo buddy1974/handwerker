@@ -15,14 +15,14 @@ export default async function DashboardLayout({
     <div className="flex h-screen bg-gray-950 overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-12 border-b border-gray-800 flex items-center justify-end px-6 flex-shrink-0">
+        <header className="h-12 border-b border-gray-800 flex items-center justify-end px-4 flex-shrink-0 mt-12 md:mt-0">
           <UserMenu
             firstName={session.user.firstName}
             lastName={session.user.lastName}
             role={session.user.role}
           />
         </header>
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </main>
       </div>
