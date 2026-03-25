@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ArrowLeft, FileDown } from 'lucide-react'
 import { formatEur } from '@/lib/utils/money'
 import MarkPaidButton from './MarkPaidButton'
+import SendEmailButton from './SendEmailButton'
 
 const statusLabel: Record<string, string> = {
   draft: 'Entwurf', sent: 'Versendet', paid: 'Bezahlt', overdue: 'Überfällig', cancelled: 'Storniert',
@@ -51,6 +52,7 @@ export default async function InvoiceDetailPage({
           <FileDown size={14} />
           PDF
         </a>
+        <SendEmailButton invoiceId={invoice.id} defaultEmail={customer?.email ?? ''} />
         {invoice.status !== 'paid' && (
           <MarkPaidButton invoiceId={invoice.id} />
         )}

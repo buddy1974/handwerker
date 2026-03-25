@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ArrowLeft, FileDown } from 'lucide-react'
 import { formatEur } from '@/lib/utils/money'
 import CreateInvoiceButton from './CreateInvoiceButton'
+import SendEmailButton from './SendEmailButton'
 
 const statusLabel: Record<string, string> = {
   draft: 'Entwurf', sent: 'Versendet', accepted: 'Angenommen', rejected: 'Abgelehnt', expired: 'Abgelaufen',
@@ -51,6 +52,7 @@ export default async function OfferDetailPage({
           <FileDown size={14} />
           PDF
         </a>
+        <SendEmailButton offerId={offer.id} defaultEmail={customer?.email ?? ''} />
         <CreateInvoiceButton offerId={offer.id} customerId={offer.customerId} projectId={offer.projectId ?? null} title={offer.title} items={items} />
       </div>
 
