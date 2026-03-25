@@ -4,7 +4,7 @@ import { invoices, invoiceItems, customers } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, FileDown } from 'lucide-react'
 import { formatEur } from '@/lib/utils/money'
 import MarkPaidButton from './MarkPaidButton'
 
@@ -44,6 +44,13 @@ export default async function InvoiceDetailPage({
           </div>
           <h1 className="text-xl font-bold text-white truncate">{invoice.title}</h1>
         </div>
+        <a
+          href={`/api/invoices/${invoice.id}/pdf`}
+          className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+        >
+          <FileDown size={14} />
+          PDF
+        </a>
         {invoice.status !== 'paid' && (
           <MarkPaidButton invoiceId={invoice.id} />
         )}

@@ -4,7 +4,7 @@ import { offers, offerItems, customers } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, FileDown } from 'lucide-react'
 import { formatEur } from '@/lib/utils/money'
 import CreateInvoiceButton from './CreateInvoiceButton'
 
@@ -44,6 +44,13 @@ export default async function OfferDetailPage({
           </div>
           <h1 className="text-xl font-bold text-white truncate">{offer.title}</h1>
         </div>
+        <a
+          href={`/api/offers/${offer.id}/pdf`}
+          className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+        >
+          <FileDown size={14} />
+          PDF
+        </a>
         <CreateInvoiceButton offerId={offer.id} customerId={offer.customerId} projectId={offer.projectId ?? null} title={offer.title} items={items} />
       </div>
 
