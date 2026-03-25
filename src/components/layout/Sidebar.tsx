@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, FolderOpen, Clock,
-  FileText, Receipt, FilePlus, Settings, Tablet, Menu, X,
+  FileText, Receipt, FilePlus, Settings, Tablet, Menu, X, Calendar,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +13,7 @@ const nav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/customers', label: 'Kunden', icon: Users },
   { href: '/projects', label: 'Projekte', icon: FolderOpen },
+  { href: '/projects/plantafel', label: 'Plantafel', icon: Calendar },
   { href: '/time', label: 'Zeiterfassung', icon: Clock },
   { href: '/reports', label: 'Berichte', icon: FileText },
   { href: '/offers', label: 'Angebote', icon: FilePlus },

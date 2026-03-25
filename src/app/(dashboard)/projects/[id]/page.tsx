@@ -4,7 +4,7 @@ import { projects, customers } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Calendar, Clock, Pencil, User2 } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Clock, Pencil, User2, Plus } from 'lucide-react'
 import ProjectChat from '@/components/project/ProjectChat'
 import MaterialLog from '@/components/project/MaterialLog'
 import TravelLog from '@/components/project/TravelLog'
@@ -75,6 +75,13 @@ export default async function ProjectDetailPage({
           </div>
           <h1 className="text-2xl font-bold text-white truncate">{project.title}</h1>
         </div>
+        <Link
+          href={`/projects/${project.id}/nachtragsauftrag`}
+          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors flex-shrink-0"
+        >
+          <Plus size={14} />
+          Nachtrag
+        </Link>
         <Link
           href={`/projects/${project.id}/edit`}
           className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors flex-shrink-0"
