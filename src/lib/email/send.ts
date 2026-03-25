@@ -18,7 +18,7 @@ export async function sendOfferEmail({
   fileName: string
 }) {
   return resend.emails.send({
-    from: `${companyName} <noreply@handwerkos.de>`,
+    from: `${companyName} <onboarding@resend.dev>`,
     to: [to],
     subject: `Angebot ${offerNumber} von ${companyName}`,
     html: `
@@ -61,7 +61,7 @@ export async function sendInvoiceEmail({
   fileName: string
 }) {
   return resend.emails.send({
-    from: `${companyName} <noreply@handwerkos.de>`,
+    from: `${companyName} <onboarding@resend.dev>`,
     to: [to],
     subject: `Rechnung ${invoiceNumber} von ${companyName}`,
     html: `
