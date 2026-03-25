@@ -18,7 +18,7 @@ export async function sendOfferEmail({
   fileName: string
 }) {
   return resend.emails.send({
-    from: `HandwerkOS <onboarding@resend.dev>`,
+    from: `HandwerkOS <noreply@maxpromo.digital>`,
     to: [to],
     subject: `Angebot ${offerNumber} von ${companyName}`,
     html: `
@@ -61,7 +61,7 @@ export async function sendInvoiceEmail({
   fileName: string
 }) {
   return resend.emails.send({
-    from: `HandwerkOS <onboarding@resend.dev>`,
+    from: `HandwerkOS <noreply@maxpromo.digital>`,
     to: [to],
     subject: `Rechnung ${invoiceNumber} von ${companyName}`,
     html: `
