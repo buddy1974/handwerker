@@ -8,6 +8,8 @@ import { createProjectSchema } from '@/lib/validations/project'
 import { z } from 'zod'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import AddressAutocomplete from '@/components/ui/AddressAutocomplete'
+import OCRProjectImport from '@/components/field/OCRProjectImport'
 
 type Customer = { id: string; name: string }
 type FormValues = z.input<typeof createProjectSchema>
@@ -18,10 +20,12 @@ export default function NewProjectPage() {
   const [loading, setLoading] = useState(false)
   const [customersList, setCustomersList] = useState<Customer[]>([])
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: { status: 'draft', priority: 2, tags: [] },
   })
+
+  const [streetValue, setStreetValue] = useState('')
 
   useEffect(() => {
     fetch('/api/customers')
@@ -58,6 +62,21 @@ export default function NewProjectPage() {
         </Link>
         <h1 className="text-2xl font-bold text-white">Neues Projekt</h1>
       </div>
+
+      <OCRProjectImport
+        onImport={data => {
+          if (data.projectTitle) setValue('title', data.projectTitle)
+          if (data.projectDescription) setValue('description', data.projectDescription)
+          if (data.startDate) setValue('startDate', data.startDate)
+          if (data.endDate) setValue('endDate', data.endDate)
+          if (data.addressStreet) {
+            setStreetValue(data.addressStreet)
+            setValue('locationStreet', data.addressStreet)
+          }
+          if (data.addressCity) setValue('locationCity', data.addressCity)
+          if (data.addressZip) setValue('locationZip', data.addressZip)
+        }}
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
@@ -142,9 +161,18 @@ export default function NewProjectPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-sm text-gray-300 mb-1">Straße</label>
-              <input
-                {...register('locationStreet')}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+              <AddressAutocomplete
+                value={streetValue}
+                onChange={val => {
+                  setStreetValue(val)
+                  setValue('locationStreet', val)
+                }}
+                onSelect={result => {
+                  setStreetValue(result.street || result.display)
+                  setValue('locationStreet', result.street || result.display)
+                  setValue('locationCity', result.city)
+                  setValue('locationZip', result.zip)
+                }}
                 placeholder="Musterstraße 1"
               />
             </div>

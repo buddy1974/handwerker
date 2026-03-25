@@ -11,6 +11,7 @@ type FormValues = z.input<typeof createReportSchema>
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import AIWriteButton from '@/components/ui/AIWriteButton'
 
 const SignatureCanvas = dynamic(() => import('@/components/field/SignatureCanvas'), { ssr: false })
 
@@ -36,7 +37,7 @@ export default function NewReportPage() {
   )
   const [newChecklistItem, setNewChecklistItem] = useState('')
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(createReportSchema),
     defaultValues: {
       workDate: new Date().toISOString().split('T')[0],
@@ -120,8 +121,15 @@ export default function NewReportPage() {
             <textarea {...register('description')} rows={3} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 resize-none" placeholder="Was wurde gemacht?" />
           </div>
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Durchgeführte Arbeiten</label>
-            <textarea {...register('workDone')} rows={3} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 resize-none" placeholder="Detail der Arbeiten..." />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm text-gray-300">Durchgeführte Arbeiten</label>
+              <AIWriteButton
+                fieldValue={watch('workDone') ?? ''}
+                field="workDone"
+                onResult={text => setValue('workDone', text)}
+              />
+            </div>
+            <textarea {...register('workDone')} rows={3} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 resize-none" placeholder="Stichworte eingeben, KI formuliert aus..." />
           </div>
           <div>
             <label className="block text-sm text-gray-300 mb-1">Verwendete Materialien</label>
