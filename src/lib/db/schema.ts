@@ -437,6 +437,50 @@ export const auditLogs = pgTable('audit_logs', {
   index('idx_audit_entity').on(t.entityType, t.entityId),
 ])
 
+// ─── PROJECT MESSAGES (CHAT) ─────────────────────────────────
+export const projectMessages = pgTable('project_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  message: text('message').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (t) => [
+  index('idx_messages_project').on(t.projectId),
+])
+
+// ─── MATERIAL ENTRIES ────────────────────────────────────────
+export const materialEntries = pgTable('material_entries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  name: text('name').notNull(),
+  quantity: numeric('quantity', { precision: 10, scale: 3 }).notNull().default('1'),
+  unit: text('unit').default('Stk'),
+  unitPrice: numeric('unit_price', { precision: 10, scale: 2 }).default('0'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (t) => [
+  index('idx_material_entries_project').on(t.projectId),
+])
+
+// ─── TRAVEL ENTRIES (FAHRTKOSTEN) ────────────────────────────
+export const travelEntries = pgTable('travel_entries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  distanceKm: numeric('distance_km', { precision: 8, scale: 1 }).notNull(),
+  ratePerKm: numeric('rate_per_km', { precision: 5, scale: 2 }).default('0.30'),
+  totalCost: numeric('total_cost', { precision: 10, scale: 2 }).default('0'),
+  notes: text('notes'),
+  travelDate: date('travel_date').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (t) => [
+  index('idx_travel_entries_project').on(t.projectId),
+])
+
 // ─── TYPES (inferred from schema) ────────────────────────────
 export type Company = typeof companies.$inferSelect
 export type NewCompany = typeof companies.$inferInsert
@@ -459,3 +503,7 @@ export type Invoice = typeof invoices.$inferSelect
 export type NewInvoice = typeof invoices.$inferInsert
 export type Notification = typeof notifications.$inferSelect
 export type AuditLog = typeof auditLogs.$inferSelect
+export type ProjectMessage = typeof projectMessages.$inferSelect
+export type NewProjectMessage = typeof projectMessages.$inferInsert
+export type MaterialEntry = typeof materialEntries.$inferSelect
+export type TravelEntry = typeof travelEntries.$inferSelect

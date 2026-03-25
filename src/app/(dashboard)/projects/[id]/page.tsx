@@ -5,6 +5,9 @@ import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, MapPin, Calendar, Clock, Pencil, User2 } from 'lucide-react'
+import ProjectChat from '@/components/project/ProjectChat'
+import MaterialLog from '@/components/project/MaterialLog'
+import TravelLog from '@/components/project/TravelLog'
 
 const statusLabel: Record<string, string> = {
   draft: 'Entwurf',
@@ -154,15 +157,9 @@ export default async function ProjectDetailPage({
           </div>
         )}
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Zeiterfassung</h2>
-          <p className="text-gray-500 text-sm">Kommt in Phase 3.</p>
-        </div>
-
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Berichte</h2>
-          <p className="text-gray-500 text-sm">Kommt in Phase 5.</p>
-        </div>
+        <MaterialLog projectId={project.id} />
+        <TravelLog projectId={project.id} />
+        <ProjectChat projectId={project.id} currentUserId={session!.user.id} />
 
       </div>
     </div>
