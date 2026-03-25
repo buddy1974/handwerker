@@ -16,7 +16,10 @@
       "Bash(ls:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\loneb\\\\Documents\\\\ai-software-dev\\\\projects\\\\handwerker\\\\src\\\\app\\\\api\\\\projects\\\\[id]\\\\measurements\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\loneb\\\\Documents\\\\ai-software-dev\\\\projects\\\\handwerker\\\\src\\\\app\\\\\\(dashboard\\)\\\\projects\\\\[id]\\\\aufmass\")",
+      "Bash(cd:*)"
     ]
   }
 }
