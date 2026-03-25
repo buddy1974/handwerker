@@ -77,9 +77,9 @@ export default function FieldPage() {
     <div className="min-h-screen bg-gray-950 flex flex-col">
 
       <header className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
-        <span className="text-white font-bold text-lg">
+        <a href="/dashboard" className="text-white font-bold text-lg hover:opacity-80 transition-opacity">
           Handwerk<span className="text-blue-500">OS</span>
-        </span>
+        </a>
         <div className="flex items-center gap-3">
           {pendingCount > 0 && (
             <span className="bg-orange-600 text-white text-xs px-2 py-0.5 rounded-full">
@@ -103,6 +103,12 @@ export default function FieldPage() {
             <RefreshCw size={12} className={syncing ? 'animate-spin' : ''} />
             Sync
           </button>
+          <a
+            href="/dashboard"
+            className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Dashboard
+          </a>
         </div>
       </header>
 
