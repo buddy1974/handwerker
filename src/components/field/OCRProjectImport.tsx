@@ -30,39 +30,61 @@ export default function OCRProjectImport({
   const [result, setResult] = useState<ExtractedData | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new window.Image()
+      const url = URL.createObjectURL(file)
+
+      img.onload = () => {
+        const MAX = 1200
+        let w = img.width
+        let h = img.height
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round((h * MAX) / w); w = MAX }
+          else { w = Math.round((w * MAX) / h); h = MAX }
+        }
+        canvas.width = w
+        canvas.height = h
+        ctx?.drawImage(img, 0, 0, w, h)
+        URL.revokeObjectURL(url)
+        resolve(canvas.toDataURL('image/jpeg', 0.75))
+      }
+      img.onerror = reject
+      img.src = url
+    })
+  }
+
   const processImage = async (file: File) => {
     setLoading(true)
     setError(null)
     setResult(null)
 
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const dataUrl = e.target?.result as string
+    try {
+      const dataUrl = await compressImage(file)
       setPreview(dataUrl)
 
       const base64 = dataUrl.split(',')[1]
-      const mediaType = file.type as 'image/jpeg' | 'image/png' | 'image/webp'
 
-      try {
-        const res = await fetch('/api/ai/ocr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: base64, mediaType }),
-        })
+      const res = await fetch('/api/ai/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mediaType: 'image/jpeg' }),
+      })
 
-        if (res.ok) {
-          const data = await res.json()
-          setResult(data)
-        } else {
-          setError('Fehler beim Lesen des Bildes')
-        }
-      } catch {
-        setError('Fehler beim Verarbeiten')
-      } finally {
-        setLoading(false)
+      if (res.ok) {
+        const data = await res.json()
+        setResult(data)
+      } else {
+        const errData = await res.json().catch(() => ({}))
+        setError(errData.error ?? `Fehler ${res.status}`)
       }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Fehler beim Verarbeiten')
+    } finally {
+      setLoading(false)
     }
-    reader.readAsDataURL(file)
   }
 
   const confidenceColor = {
