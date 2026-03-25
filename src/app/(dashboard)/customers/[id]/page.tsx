@@ -4,7 +4,7 @@ import { customers } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Building2, User, Mail, Phone, MapPin, FileText, Pencil } from 'lucide-react'
+import { ArrowLeft, Building2, User, Mail, Phone, MapPin, FileText, Pencil, ExternalLink } from 'lucide-react'
 
 export default async function CustomerDetailPage({
   params,
@@ -36,6 +36,15 @@ export default async function CustomerDetailPage({
             {customer.type === 'business' ? 'Firma' : 'Privatkunde'}
           </p>
         </div>
+        <a
+          href={`/portal/${customer.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+        >
+          <ExternalLink size={14} />
+          Portal
+        </a>
         <Link
           href={`/customers/${customer.id}/edit`}
           className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors"

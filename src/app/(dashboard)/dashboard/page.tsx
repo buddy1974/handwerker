@@ -77,6 +77,11 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      <div className="flex justify-end mb-4">
+        <a href="/dashboard/analytics" className="text-blue-400 text-sm hover:underline flex items-center gap-1">
+          Auswertungen →
+        </a>
+      </div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">
           Guten Tag, {session!.user.firstName} 👋
