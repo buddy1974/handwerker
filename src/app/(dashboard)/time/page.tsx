@@ -66,6 +66,17 @@ export default function TimePage() {
     if (!selectedProject) { setError('Bitte Projekt auswählen'); return }
     setLoading(true)
     setError(null)
+    let gps = null
+    if ('geolocation' in navigator) {
+      gps = await new Promise<{ lat: number; lng: number; accuracy: number } | null>((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+          () => resolve(null),
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+        )
+      })
+    }
+
     const res = await fetch('/api/time', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -74,6 +85,7 @@ export default function TimePage() {
         taskLabel: taskLabel || undefined,
         startedAt: new Date().toISOString(),
         isBillable: true,
+        gps,
       }),
     })
     if (!res.ok) {

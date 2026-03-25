@@ -182,6 +182,22 @@ function ProjectActions({
   project: CachedProject
   onBack: () => void
 }) {
+  const [gpsStatus, setGpsStatus] = useState<'checking' | 'ok' | 'denied' | null>(null)
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null)
+
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return
+    setGpsStatus('checking')
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setGpsStatus('ok')
+      },
+      () => setGpsStatus('denied'),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    )
+  }, [])
+
   const actions = [
     { icon: Clock, label: 'Zeit erfassen', desc: 'Timer starten oder stoppen', href: '/time', color: 'text-blue-400' },
     { icon: FileText, label: 'Bericht erstellen', desc: 'Servicebericht + Unterschrift', href: '#report', color: 'text-green-400' },
@@ -206,6 +222,30 @@ function ProjectActions({
           <p className="text-gray-500 text-xs mt-1">📍 {project.locationCity}</p>
         )}
       </div>
+
+      {gpsStatus && (
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs mb-3 ${
+          gpsStatus === 'ok' ? 'bg-green-950 text-green-400' :
+          gpsStatus === 'checking' ? 'bg-gray-800 text-gray-400' :
+          'bg-red-950 text-red-400'
+        }`}>
+          <span>{
+            gpsStatus === 'ok' ? '📍 Standort erfasst' :
+            gpsStatus === 'checking' ? '📍 Standort wird ermittelt...' :
+            '📍 Standortzugriff verweigert'
+          }</span>
+          {gpsCoords && (
+            <a
+              href={`https://www.google.com/maps?q=${gpsCoords.lat},${gpsCoords.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto underline opacity-60"
+            >
+              Karte
+            </a>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         {actions.map(({ icon: Icon, label, desc, href, color }) => (
