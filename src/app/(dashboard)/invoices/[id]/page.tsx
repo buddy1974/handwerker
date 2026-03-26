@@ -52,11 +52,22 @@ export default async function InvoiceDetailPage({
           <FileDown size={14} />
           PDF
         </a>
+        <a
+          href={`/api/invoices/${invoice.id}/xrechnung`}
+          className="flex items-center gap-1.5 bg-green-700 hover:bg-green-600 text-white text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+        >
+          <span>⚡</span>
+          XRechnung
+        </a>
         <SendEmailButton invoiceId={invoice.id} defaultEmail={customer?.email ?? ''} />
         {invoice.status !== 'paid' && (
           <MarkPaidButton invoiceId={invoice.id} />
         )}
       </div>
+
+      <p className="text-xs text-gray-500 mb-4">
+        XRechnung ist ab 2025 Pflicht für B2B-Rechnungen an öffentliche Auftraggeber.
+      </p>
 
       <div className="space-y-4">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
