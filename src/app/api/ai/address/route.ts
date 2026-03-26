@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { searchParams } = new URL(req.url)
-  const query = searchParams.get('q')
+  const body = await req.json().catch(() => ({}))
+  const { query, lat, lon } = body as { query?: string; lat?: number | null; lon?: number | null }
   if (!query || query.length < 3) return NextResponse.json([])
 
   const encoded = encodeURIComponent(query + ', Germany')
-  const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&addressdetails=1&limit=5&countrycodes=de`
+  const locationBias = lat && lon ? `&lat=${lat}&lon=${lon}` : ''
+  const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&addressdetails=1&limit=5&countrycodes=de${locationBias}`
 
   const res = await fetch(url, {
     headers: { 'User-Agent': 'HandwerkOS/1.0 (noreply@maxpromo.digital)' },

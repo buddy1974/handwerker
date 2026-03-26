@@ -19,6 +19,7 @@ export default function NewProjectPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [customersList, setCustomersList] = useState<Customer[]>([])
+  const [customersLoaded, setCustomersLoaded] = useState(false)
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(createProjectSchema),
@@ -58,7 +59,7 @@ export default function NewProjectPage() {
   useEffect(() => {
     fetch('/api/customers')
       .then(r => r.json())
-      .then(data => setCustomersList(data))
+      .then(data => { setCustomersList(data); setCustomersLoaded(true) })
       .catch(() => {})
   }, [])
 
@@ -94,6 +95,7 @@ export default function NewProjectPage() {
       <OCRProjectImport
         onImport={handleOCRImport}
         customers={customersList}
+        customersLoaded={customersLoaded}
         onCustomerCreated={handleCustomerCreated}
       />
 

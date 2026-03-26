@@ -29,6 +29,16 @@ export default function AddressAutocomplete({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const userLocationRef = useRef<{ lat: number; lon: number } | null>(null)
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => { userLocationRef.current = { lat: pos.coords.latitude, lon: pos.coords.longitude } },
+        () => {}
+      )
+    }
+  }, [])
 
   useEffect(() => {
     if (value.length < 3) { setResults([]); return }
@@ -36,7 +46,11 @@ export default function AddressAutocomplete({
     timeoutRef.current = setTimeout(async () => {
       setLoading(true)
       try {
-        const res = await fetch(`/api/ai/address?q=${encodeURIComponent(value)}`)
+        const res = await fetch('/api/ai/address', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: value, lat: userLocationRef.current?.lat ?? null, lon: userLocationRef.current?.lon ?? null }),
+        })
         if (res.ok) {
           const data = await res.json()
           setResults(data)

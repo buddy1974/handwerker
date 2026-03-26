@@ -22,10 +22,12 @@ type ExtractedData = {
 export default function OCRProjectImport({
   onImport,
   customers = [],
+  customersLoaded = false,
   onCustomerCreated,
 }: {
   onImport: (data: ExtractedData) => void
   customers?: { id: string; name: string }[]
+  customersLoaded?: boolean
   onCustomerCreated?: (id: string, name: string) => void
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
@@ -114,12 +116,6 @@ export default function OCRProjectImport({
       if (res.ok) {
         const data = await res.json()
         setResult(data)
-        if (data.customerName) {
-          const match = customers.find(
-            c => c.name.trim().toLowerCase() === data.customerName.trim().toLowerCase()
-          )
-          if (!match) setUnmatchedCustomer(data.customerName)
-        }
       } else {
         const errData = await res.json().catch(() => ({}))
         setError(errData.error ?? `Fehler ${res.status}`)
@@ -224,10 +220,19 @@ export default function OCRProjectImport({
               </button>
             </div>
 
-            {result && (
+            {result && customersLoaded && (
               <button
                 type="button"
-                onClick={() => onImport(result)}
+                onClick={() => {
+                  onImport(result)
+                  if (result.customerName) {
+                    const match = customers.find(
+                      c => c.name.trim().toLowerCase() === result.customerName!.trim().toLowerCase()
+                    )
+                    if (!match) setUnmatchedCustomer(result.customerName)
+                    else setUnmatchedCustomer(null)
+                  }
+                }}
                 className="w-full bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium py-2 rounded-lg"
               >
                 Daten in Formular übernehmen
