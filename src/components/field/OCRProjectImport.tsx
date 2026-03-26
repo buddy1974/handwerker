@@ -220,17 +220,18 @@ export default function OCRProjectImport({
               </button>
             </div>
 
-            {result && customersLoaded && (
+            {result && (
               <button
                 type="button"
                 onClick={() => {
                   onImport(result)
                   if (result.customerName) {
-                    const match = customers.find(
-                      c => c.name.trim().toLowerCase() === result.customerName!.trim().toLowerCase()
-                    )
-                    if (!match) setUnmatchedCustomer(result.customerName)
-                    else setUnmatchedCustomer(null)
+                    console.log('customers at click time:', customers)
+                    console.log('result.customerName:', result.customerName)
+                    const match = customers.length > 0
+                      ? customers.find(c => c.name.trim().toLowerCase() === result.customerName!.trim().toLowerCase())
+                      : null
+                    setUnmatchedCustomer(match ? null : result.customerName)
                   }
                 }}
                 className="w-full bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium py-2 rounded-lg"

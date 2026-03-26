@@ -59,8 +59,9 @@ export default function NewProjectPage() {
   useEffect(() => {
     fetch('/api/customers')
       .then(r => r.json())
-      .then(data => { setCustomersList(data); setCustomersLoaded(true) })
-      .catch(() => {})
+      .then(data => { setCustomersList(Array.isArray(data) ? data : []) })
+      .catch(() => { setCustomersList([]) })
+      .finally(() => { setCustomersLoaded(true) })
   }, [])
 
   const onSubmit = async (data: FormValues) => {
