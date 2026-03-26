@@ -21,14 +21,20 @@ type ExtractedData = {
 
 export default function OCRProjectImport({
   onImport,
+  customers = [],
+  onCustomerCreated,
 }: {
   onImport: (data: ExtractedData) => void
+  customers?: { id: string; name: string }[]
+  onCustomerCreated?: (id: string, name: string) => void
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [result, setResult] = useState<ExtractedData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [unmatchedCustomer, setUnmatchedCustomer] = useState<string | null>(null)
+  const [creatingCustomer, setCreatingCustomer] = useState(false)
 
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -56,10 +62,42 @@ export default function OCRProjectImport({
     })
   }
 
+  const createCustomer = async () => {
+    if (!unmatchedCustomer || !result) return
+    setCreatingCustomer(true)
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: unmatchedCustomer,
+          addressStreet: result.addressStreet ?? '',
+          addressCity: result.addressCity ?? '',
+          addressZip: result.addressZip ?? '',
+          phone: result.customerPhone ?? '',
+          email: result.customerEmail ?? '',
+        }),
+      })
+      if (res.ok) {
+        const customer = await res.json()
+        setUnmatchedCustomer(null)
+        onCustomerCreated?.(customer.id, customer.name)
+      } else {
+        const err = await res.json().catch(() => ({}))
+        setError(err.error ?? 'Kunde konnte nicht angelegt werden')
+      }
+    } catch {
+      setError('Netzwerkfehler beim Anlegen des Kunden')
+    } finally {
+      setCreatingCustomer(false)
+    }
+  }
+
   const processImage = async (file: File) => {
     setLoading(true)
     setError(null)
     setResult(null)
+    setUnmatchedCustomer(null)
 
     try {
       const dataUrl = await compressImage(file)
@@ -76,6 +114,12 @@ export default function OCRProjectImport({
       if (res.ok) {
         const data = await res.json()
         setResult(data)
+        if (data.customerName) {
+          const match = customers.find(
+            c => c.name.trim().toLowerCase() === data.customerName.trim().toLowerCase()
+          )
+          if (!match) setUnmatchedCustomer(data.customerName)
+        }
       } else {
         const errData = await res.json().catch(() => ({}))
         setError(errData.error ?? `Fehler ${res.status}`)
@@ -141,6 +185,21 @@ export default function OCRProjectImport({
                   </div>
                 )}
                 {error && <p className="text-red-400 text-sm">{error}</p>}
+                {unmatchedCustomer && (
+                  <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm mt-2">
+                    <span className="text-amber-700">
+                      ⚠️ <strong>{unmatchedCustomer}</strong> ist noch kein Kunde.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={createCustomer}
+                      disabled={creatingCustomer}
+                      className="ml-auto shrink-0 rounded-md bg-amber-500 px-3 py-1 text-xs font-medium text-white hover:bg-amber-600 disabled:opacity-50"
+                    >
+                      {creatingCustomer ? 'Wird angelegt…' : 'Kunde anlegen →'}
+                    </button>
+                  </div>
+                )}
                 {result && (
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">

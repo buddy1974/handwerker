@@ -27,6 +27,34 @@ export default function NewProjectPage() {
 
   const [streetValue, setStreetValue] = useState('')
 
+  const handleCustomerCreated = (id: string, name: string) => {
+    setCustomersList(prev => [...prev, { id, name }])
+    setValue('customerId', id)
+  }
+
+  type OCRData = {
+    projectTitle?: string | null
+    projectDescription?: string | null
+    startDate?: string | null
+    endDate?: string | null
+    addressStreet?: string | null
+    addressCity?: string | null
+    addressZip?: string | null
+  }
+
+  const handleOCRImport = (data: OCRData) => {
+    if (data.projectTitle) setValue('title', data.projectTitle)
+    if (data.projectDescription) setValue('description', data.projectDescription)
+    if (data.startDate) setValue('startDate', data.startDate)
+    if (data.endDate) setValue('endDate', data.endDate)
+    if (data.addressStreet) {
+      setStreetValue(data.addressStreet)
+      setValue('locationStreet', data.addressStreet)
+    }
+    if (data.addressCity) setValue('locationCity', data.addressCity)
+    if (data.addressZip) setValue('locationZip', data.addressZip)
+  }
+
   useEffect(() => {
     fetch('/api/customers')
       .then(r => r.json())
@@ -64,18 +92,9 @@ export default function NewProjectPage() {
       </div>
 
       <OCRProjectImport
-        onImport={data => {
-          if (data.projectTitle) setValue('title', data.projectTitle)
-          if (data.projectDescription) setValue('description', data.projectDescription)
-          if (data.startDate) setValue('startDate', data.startDate)
-          if (data.endDate) setValue('endDate', data.endDate)
-          if (data.addressStreet) {
-            setStreetValue(data.addressStreet)
-            setValue('locationStreet', data.addressStreet)
-          }
-          if (data.addressCity) setValue('locationCity', data.addressCity)
-          if (data.addressZip) setValue('locationZip', data.addressZip)
-        }}
+        onImport={handleOCRImport}
+        customers={customersList}
+        onCustomerCreated={handleCustomerCreated}
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
