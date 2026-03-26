@@ -39,6 +39,7 @@
     "resend": "^6.9.4",
     "tailwind-merge": "^3.5.0",
     "use-image": "^1.1.4",
+    "web-push": "^3.6.7",
     "workbox-window": "^7.4.0",
     "zod": "^4.3.6"
   },
@@ -49,6 +50,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/serviceworker": "^0.0.194",
+    "@types/web-push": "^3.6.4",
     "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",

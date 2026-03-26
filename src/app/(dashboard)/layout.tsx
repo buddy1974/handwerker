@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Sidebar from '@/components/layout/Sidebar'
 import UserMenu from '@/components/layout/UserMenu'
 import Footer from '@/components/layout/Footer'
+import PushSubscriber from '@/components/layout/PushSubscriber'
 
 export default async function DashboardLayout({
   children,
@@ -28,6 +29,7 @@ export default async function DashboardLayout({
         </main>
         <Footer />
       </div>
+      <PushSubscriber />
     </div>
   )
 }

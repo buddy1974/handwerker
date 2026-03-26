@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { serviceReports, projects, reportChecklistItems } from '@/lib/db/schema'
-import { eq, and, desc } from 'drizzle-orm'
+import { serviceReports, projects, reportChecklistItems, users } from '@/lib/db/schema'
+import { eq, and, desc, inArray } from 'drizzle-orm'
 import { createReportSchema } from '@/lib/validations/report'
+import { sendPushToUser } from '@/lib/push'
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -78,6 +79,23 @@ export async function POST(req: NextRequest) {
         notes: item.notes ?? '',
         sortOrder: i,
       }))
+    )
+  }
+
+  const officeUsers = await db.select({ id: users.id }).from(users)
+    .where(and(
+      eq(users.companyId, session.user.companyId),
+      inArray(users.role, ['admin', 'office'])
+    ))
+
+  const senderName = `${session.user.firstName} ${session.user.lastName}`.trim()
+  for (const u of officeUsers) {
+    await sendPushToUser(
+      u.id,
+      session.user.companyId,
+      'Neuer Servicebericht',
+      `${senderName} hat einen Bericht eingereicht.`,
+      { type: 'report_submitted', url: '/reports' }
     )
   }
 

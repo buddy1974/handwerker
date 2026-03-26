@@ -422,6 +422,19 @@ export const notifications = pgTable('notifications', {
   index('idx_notifications_user').on(t.userId, t.isRead),
 ])
 
+// ─── PUSH SUBSCRIPTIONS ──────────────────────────────────────
+export const pushSubscriptions = pgTable('push_subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  endpoint: text('endpoint').notNull(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (t) => [
+  index('idx_push_user').on(t.userId),
+])
+
 // ─── AUDIT LOGS ──────────────────────────────────────────────
 export const auditLogs = pgTable('audit_logs', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -510,3 +523,4 @@ export type ProjectMessage = typeof projectMessages.$inferSelect
 export type NewProjectMessage = typeof projectMessages.$inferInsert
 export type MaterialEntry = typeof materialEntries.$inferSelect
 export type TravelEntry = typeof travelEntries.$inferSelect
+export type PushSubscription = typeof pushSubscriptions.$inferSelect

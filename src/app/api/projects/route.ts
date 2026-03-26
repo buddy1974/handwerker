@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { projects, customers } from '@/lib/db/schema'
 import { eq, desc, and } from 'drizzle-orm'
 import { createProjectSchema } from '@/lib/validations/project'
+import { sendPushToUser } from '@/lib/push'
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -81,6 +82,17 @@ export async function POST(req: NextRequest) {
       recurringNextDate,
     })
     .returning()
+
+  const assignedUserIds: string[] = Array.isArray(body.assignedUserIds) ? body.assignedUserIds : []
+  for (const uid of assignedUserIds) {
+    await sendPushToUser(
+      uid,
+      session.user.companyId,
+      'Neues Projekt zugewiesen',
+      `Du wurdest dem Projekt "${project.title}" zugewiesen.`,
+      { type: 'project_assigned', url: `/projects/${project.id}` }
+    )
+  }
 
   return NextResponse.json(project, { status: 201 })
 }
