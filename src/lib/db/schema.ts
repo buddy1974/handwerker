@@ -111,6 +111,9 @@ export const projects = pgTable('projects', {
   locationLng: numeric('location_lng', { precision: 10, scale: 7 }),
   startDate: date('start_date'),
   endDate: date('end_date'),
+  recurringInterval: text('recurring_interval'), // 'monthly' | 'quarterly' | 'yearly' | null
+  recurringNextDate: date('recurring_next_date'),
+  recurringEndDate: date('recurring_end_date'),
   estimatedHours: numeric('estimated_hours', { precision: 8, scale: 2 }),
   notes: text('notes'),
   tags: text('tags').array().default(sql`'{}'::text[]`),

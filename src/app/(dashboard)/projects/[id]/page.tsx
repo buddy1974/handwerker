@@ -157,6 +157,25 @@ export default async function ProjectDetailPage({
           </div>
         </div>
 
+        {project.recurringInterval && (
+          <div className="bg-blue-950 border border-blue-800 rounded-xl p-4">
+            <div className="flex items-center gap-2 text-blue-300 font-medium mb-1">
+              🔄 Wartungsvertrag aktiv
+            </div>
+            <p className="text-sm text-blue-400">
+              Nächste Rechnung:{' '}
+              {project.recurringNextDate
+                ? new Date(project.recurringNextDate).toLocaleDateString('de-DE')
+                : '—'}
+            </p>
+            {project.recurringEndDate && (
+              <p className="text-sm text-blue-400">
+                Vertragsende: {new Date(project.recurringEndDate).toLocaleDateString('de-DE')}
+              </p>
+            )}
+          </div>
+        )}
+
         {project.description && (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Beschreibung</h2>

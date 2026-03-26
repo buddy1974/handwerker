@@ -250,6 +250,32 @@ export default function NewProjectPage() {
           </div>
         </div>
 
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wide">Wartungsvertrag</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">Wiederholung</label>
+              <select
+                {...register('recurringInterval')}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base text-white focus:outline-none focus:border-blue-500"
+              >
+                <option value="">Kein Wartungsvertrag</option>
+                <option value="monthly">Monatlich</option>
+                <option value="quarterly">Vierteljährlich</option>
+                <option value="yearly">Jährlich</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">Vertragsende (optional)</label>
+              <input
+                type="date"
+                {...register('recurringEndDate')}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
         {error && (
           <div className="bg-red-950 border border-red-800 rounded-lg px-4 py-3">
             <p className="text-red-400 text-sm">{error}</p>

@@ -62,6 +62,15 @@ export async function POST(req: NextRequest) {
 
   const projectNumber = 'PRJ-' + String(count).padStart(5, '0')
 
+  let recurringNextDate = parsed.data.recurringNextDate ?? null
+  if (parsed.data.recurringInterval && parsed.data.startDate && !recurringNextDate) {
+    const base = new Date(parsed.data.startDate)
+    if (parsed.data.recurringInterval === 'monthly') base.setMonth(base.getMonth() + 1)
+    else if (parsed.data.recurringInterval === 'quarterly') base.setMonth(base.getMonth() + 3)
+    else base.setFullYear(base.getFullYear() + 1)
+    recurringNextDate = base.toISOString().split('T')[0]
+  }
+
   const [project] = await db
     .insert(projects)
     .values({
@@ -69,6 +78,7 @@ export async function POST(req: NextRequest) {
       companyId: session.user.companyId,
       projectNumber,
       createdBy: session.user.id,
+      recurringNextDate,
     })
     .returning()
 

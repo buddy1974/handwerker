@@ -45,6 +45,7 @@ export default async function ProjectsPage() {
       projectNumber: projects.projectNumber,
       locationCity: projects.locationCity,
       startDate: projects.startDate,
+      recurringInterval: projects.recurringInterval,
       createdAt: projects.createdAt,
       customer: {
         id: customers.id,
@@ -94,6 +95,13 @@ export default async function ProjectsPage() {
                   <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor[project.status ?? 'draft']}`}>
                     {statusLabel[project.status ?? 'draft']}
                   </span>
+                  {project.recurringInterval && (
+                    <span className="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded-full">
+                      🔄 {project.recurringInterval === 'monthly' ? 'Monatlich'
+                        : project.recurringInterval === 'quarterly' ? 'Vierteljährlich'
+                        : 'Jährlich'}
+                    </span>
+                  )}
                 </div>
                 <p className="text-white font-medium text-sm truncate">{project.title}</p>
                 <p className="text-gray-500 text-xs truncate">{project.customer?.name}</p>
