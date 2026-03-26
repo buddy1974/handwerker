@@ -86,7 +86,7 @@ export default function NewProjectPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto pb-24">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/projects" className="text-gray-400 hover:text-white transition-colors">
           <ArrowLeft size={20} />
@@ -108,7 +108,7 @@ export default function NewProjectPage() {
             <label className="block text-sm text-gray-300 mb-1">Kunde *</label>
             <select
               {...register('customerId')}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
             >
               <option value="">— Kunde auswählen —</option>
               {customersList.map(c => (
@@ -122,18 +122,18 @@ export default function NewProjectPage() {
             <label className="block text-sm text-gray-300 mb-1">Projekttitel *</label>
             <input
               {...register('title')}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
               placeholder="z.B. Folierung Schaufenster Hauptstr. 5"
             />
             {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-300 mb-1">Status</label>
               <select
                 {...register('status')}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
               >
                 <option value="draft">Entwurf</option>
                 <option value="active">Aktiv</option>
@@ -147,7 +147,7 @@ export default function NewProjectPage() {
               <label className="block text-sm text-gray-300 mb-1">Priorität</label>
               <select
                 {...register('priority')}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
               >
                 <option value={1}>Niedrig</option>
                 <option value={2}>Normal</option>
@@ -174,12 +174,12 @@ export default function NewProjectPage() {
             <label className="block text-sm text-gray-300 mb-1">Bezeichnung</label>
             <input
               {...register('locationName')}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
               placeholder="z.B. Filiale Nord"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-sm text-gray-300 mb-1">Straße</label>
               <AddressAutocomplete
@@ -201,7 +201,7 @@ export default function NewProjectPage() {
               <label className="block text-sm text-gray-300 mb-1">PLZ</label>
               <input
                 {...register('locationZip')}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
                 placeholder="40210"
               />
             </div>
@@ -209,7 +209,7 @@ export default function NewProjectPage() {
               <label className="block text-sm text-gray-300 mb-1">Stadt</label>
               <input
                 {...register('locationCity')}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
                 placeholder="Düsseldorf"
               />
             </div>
@@ -219,13 +219,13 @@ export default function NewProjectPage() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wide">Zeitraum</h2>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-300 mb-1">Startdatum</label>
               <input
                 {...register('startDate')}
                 type="date"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -233,7 +233,7 @@ export default function NewProjectPage() {
               <input
                 {...register('endDate')}
                 type="date"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -243,7 +243,7 @@ export default function NewProjectPage() {
                 type="number"
                 step="0.5"
                 min="0"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-blue-500"
                 placeholder="8"
               />
             </div>
@@ -256,17 +256,17 @@ export default function NewProjectPage() {
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-900 disabled:text-blue-400 text-white font-medium rounded-lg px-6 py-2 text-sm transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-900 disabled:text-blue-400 text-white font-medium rounded-lg px-6 py-2 text-sm transition-colors"
           >
             {loading ? 'Speichern...' : 'Projekt speichern'}
           </button>
           <Link
             href="/projects"
-            className="bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg px-6 py-2 text-sm transition-colors"
+            className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg px-6 py-2 text-sm transition-colors"
           >
             Abbrechen
           </Link>

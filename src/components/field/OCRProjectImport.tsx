@@ -116,7 +116,7 @@ export default function OCRProjectImport({
                     fileRef.current.click()
                   }
                 }}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white text-sm px-3 py-2 rounded-lg"
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white text-sm px-3 py-3 rounded-lg"
               >
                 <Camera size={14} />
                 Foto aufnehmen
@@ -124,7 +124,7 @@ export default function OCRProjectImport({
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm px-3 py-2 rounded-lg"
+                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm px-3 py-3 rounded-lg"
               >
                 <Upload size={14} />
                 Bild auswählen
@@ -134,7 +134,7 @@ export default function OCRProjectImport({
         ) : (
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <img src={preview} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-gray-700" />
+              <img src={preview} alt="Preview" className="w-20 h-20 flex-shrink-0 object-cover rounded-lg border border-gray-700" />
               <div className="flex-1">
                 {loading && (
                   <div className="flex items-center gap-2 text-purple-400 text-sm">
@@ -185,7 +185,7 @@ export default function OCRProjectImport({
                       .catch(() => {})
                   }
                 }}
-                className="w-full bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium py-2 rounded-lg"
+                className="w-full bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium py-3 rounded-lg"
               >
                 Daten in Formular übernehmen
               </button>
