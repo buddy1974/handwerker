@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json().catch(() => ({}))
-  const { query, lat, lon } = body as { query?: string; lat?: number | null; lon?: number | null }
+  const query = req.nextUrl.searchParams.get('q')
+  const lat = req.nextUrl.searchParams.get('lat')
+  const lon = req.nextUrl.searchParams.get('lon')
   if (!query || query.length < 3) return NextResponse.json([])
 
   const encoded = encodeURIComponent(query + ', Germany')

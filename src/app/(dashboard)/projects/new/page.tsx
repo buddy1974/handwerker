@@ -19,7 +19,6 @@ export default function NewProjectPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [customersList, setCustomersList] = useState<Customer[]>([])
-  const [customersLoaded, setCustomersLoaded] = useState(false)
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(createProjectSchema),
@@ -28,8 +27,11 @@ export default function NewProjectPage() {
 
   const [streetValue, setStreetValue] = useState('')
 
-  const handleCustomerCreated = (id: string, name: string) => {
-    setCustomersList(prev => [...prev, { id, name }])
+  const handleCustomerAutoCreated = (id: string, name: string) => {
+    setCustomersList(prev => {
+      if (prev.find(c => c.id === id)) return prev
+      return [...prev, { id, name }]
+    })
     setValue('customerId', id)
   }
 
@@ -60,8 +62,7 @@ export default function NewProjectPage() {
     fetch('/api/customers')
       .then(r => r.json())
       .then(data => { setCustomersList(Array.isArray(data) ? data : []) })
-      .catch(() => { setCustomersList([]) })
-      .finally(() => { setCustomersLoaded(true) })
+      .catch(() => {})
   }, [])
 
   const onSubmit = async (data: FormValues) => {
@@ -95,9 +96,7 @@ export default function NewProjectPage() {
 
       <OCRProjectImport
         onImport={handleOCRImport}
-        customers={customersList}
-        customersLoaded={customersLoaded}
-        onCustomerCreated={handleCustomerCreated}
+        onCustomerAutoCreated={handleCustomerAutoCreated}
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

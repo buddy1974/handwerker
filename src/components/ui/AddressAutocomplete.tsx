@@ -46,11 +46,12 @@ export default function AddressAutocomplete({
     timeoutRef.current = setTimeout(async () => {
       setLoading(true)
       try {
-        const res = await fetch('/api/ai/address', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: value, lat: userLocationRef.current?.lat ?? null, lon: userLocationRef.current?.lon ?? null }),
-        })
+        const params = new URLSearchParams({ q: value })
+        if (userLocationRef.current) {
+          params.append('lat', String(userLocationRef.current.lat))
+          params.append('lon', String(userLocationRef.current.lon))
+        }
+        const res = await fetch(`/api/ai/address?${params.toString()}`)
         if (res.ok) {
           const data = await res.json()
           setResults(data)
