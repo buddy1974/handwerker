@@ -12,6 +12,7 @@ type CompanySettings = {
   addressZip: string
   addressCountry: string
   vatNumber: string
+  trade: string
   invoicePrefix: string
   offerPrefix: string
   iban: string
@@ -31,6 +32,7 @@ export default function SettingsPage() {
     addressZip: '',
     addressCountry: 'DE',
     vatNumber: '',
+    trade: '',
     invoicePrefix: 'RE',
     offerPrefix: 'AN',
     iban: '',
@@ -101,6 +103,29 @@ export default function SettingsPage() {
             {field('phone', 'Telefon', '+49 211 123456')}
           </div>
           {field('vatNumber', 'USt-IdNr. / Steuernummer', 'DE123456789')}
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Gewerk / Branche</label>
+            <select
+              value={settings.trade}
+              onChange={e => setSettings(prev => ({ ...prev, trade: e.target.value }))}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+            >
+              <option value="">— Bitte wählen —</option>
+              <option value="Maler">Maler &amp; Lackierer</option>
+              <option value="Elektriker">Elektriker</option>
+              <option value="Sanitär">Sanitär &amp; Heizung</option>
+              <option value="Schreiner">Schreiner &amp; Tischler</option>
+              <option value="Fliesenleger">Fliesenleger</option>
+              <option value="Dachdecker">Dachdecker</option>
+              <option value="Gerüstbauer">Gerüstbauer</option>
+              <option value="Bodenleger">Bodenleger</option>
+              <option value="Metallbauer">Metallbauer &amp; Schlosser</option>
+              <option value="Garten">Garten &amp; Landschaftsbau</option>
+              <option value="Folierung">Folierung &amp; Beschriftung</option>
+              <option value="Reinigung">Gebäudereinigung</option>
+              <option value="Sonstiges">Sonstiges Handwerk</option>
+            </select>
+          </div>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">

@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
     iban: (company.settings as any)?.iban ?? '',
     bic: (company.settings as any)?.bic ?? '',
     bankName: (company.settings as any)?.bankName ?? '',
+    trade: (company.settings as any)?.trade ?? '',
     logoUrl: company.logoUrl ?? '',
     brandColor: company.brandColor ?? '#1a56db',
   })
@@ -42,7 +43,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { iban, bic, bankName, ...companyData } = body
+  const { iban, bic, bankName, trade, ...companyData } = body
 
   const [updated] = await db
     .update(companies)
@@ -59,7 +60,7 @@ export async function PATCH(req: NextRequest) {
       offerPrefix: companyData.offerPrefix,
       logoUrl: companyData.logoUrl,
       brandColor: companyData.brandColor,
-      settings: { iban, bic, bankName },
+      settings: { iban, bic, bankName, trade },
       updatedAt: new Date(),
     })
     .where(eq(companies.id, session.user.companyId))

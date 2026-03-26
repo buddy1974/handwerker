@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { calcLineTotal, formatEur, calcTotals } from '@/lib/utils/money'
 
@@ -32,10 +33,44 @@ export default function LineItemsEditor({
   items: LineItem[]
   onChange: (items: LineItem[]) => void
 }) {
+  const [aiLoading, setAiLoading] = useState<Record<number, boolean>>({})
+  const [aiReason, setAiReason] = useState<Record<number, string>>({})
+
   const update = (i: number, field: keyof LineItem, value: string | boolean) => {
     const updated = [...items]
     updated[i] = { ...updated[i], [field]: value }
     onChange(updated)
+  }
+
+  const suggestPrice = async (index: number) => {
+    const item = items[index]
+    if (!item.title) return
+    setAiLoading(prev => ({ ...prev, [index]: true }))
+    try {
+      const res = await fetch('/api/ai/price-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: item.title,
+          description: item.description,
+          unit: item.unit,
+          quantity: item.quantity,
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const updated = [...items]
+        updated[index] = { ...updated[index], unitPrice: String(data.unitPrice) }
+        onChange(updated)
+        if (data.reasoning) {
+          setAiReason(prev => ({ ...prev, [index]: `💡 ${data.reasoning} (${data.priceRange?.min}–${data.priceRange?.max} €)` }))
+        }
+      }
+    } catch {
+      // silent fail
+    } finally {
+      setAiLoading(prev => ({ ...prev, [index]: false }))
+    }
   }
 
   const totals = calcTotals(items)
@@ -99,14 +134,25 @@ export default function LineItemsEditor({
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Einzelpreis €</label>
-              <input
-                value={item.unitPrice}
-                onChange={e => update(i, 'unitPrice', e.target.value)}
-                type="number"
-                step="0.01"
-                min="0"
-                className="w-full bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-white text-sm focus:outline-none focus:border-blue-500"
-              />
+              <div className="flex gap-1">
+                <input
+                  value={item.unitPrice}
+                  onChange={e => update(i, 'unitPrice', e.target.value)}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="w-full bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => suggestPrice(i)}
+                  disabled={aiLoading[i] || !item.title}
+                  title="KI Preisvorschlag"
+                  className="shrink-0 px-2 py-1.5 bg-purple-700 hover:bg-purple-600 disabled:opacity-40 rounded-lg text-xs font-bold text-white transition-colors"
+                >
+                  {aiLoading[i] ? '...' : '💡'}
+                </button>
+              </div>
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">MwSt %</label>
@@ -121,6 +167,10 @@ export default function LineItemsEditor({
               </select>
             </div>
           </div>
+
+          {aiReason[i] && (
+            <p className="text-xs text-purple-400">{aiReason[i]}</p>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
