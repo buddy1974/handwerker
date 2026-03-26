@@ -78,20 +78,6 @@ export default function OCRProjectImport({
       if (res.ok) {
         const data = await res.json()
         setResult(data)
-
-        // Auto-create customer silently in background
-        if (data.customerName) {
-          fetch('/api/customers', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: data.customerName }),
-          })
-            .then(r => r.ok ? r.json() : null)
-            .then(customer => {
-              if (customer?.id) onCustomerAutoCreated(customer.id, customer.name)
-            })
-            .catch(() => {}) // silent fail
-        }
       } else {
         const errData = await res.json().catch(() => ({}))
         setError(errData.error ?? `Fehler ${res.status}`)
@@ -184,7 +170,21 @@ export default function OCRProjectImport({
             {result && (
               <button
                 type="button"
-                onClick={() => onImport(result)}
+                onClick={() => {
+                  onImport(result)
+                  if (result.customerName && result.customerName.trim().length > 0) {
+                    fetch('/api/customers', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ name: result.customerName.trim() }),
+                    })
+                      .then(r => r.ok ? r.json() : null)
+                      .then(customer => {
+                        if (customer?.id) onCustomerAutoCreated(customer.id, customer.name)
+                      })
+                      .catch(() => {})
+                  }
+                }}
                 className="w-full bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium py-2 rounded-lg"
               >
                 Daten in Formular übernehmen
