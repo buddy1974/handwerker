@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { projects, invoices, invoiceItems } from '@/lib/db/schema'
-import { and, eq, lte, isNotNull, not, sql } from 'drizzle-orm'
+import { projects, invoices, invoiceItems, users } from '@/lib/db/schema'
+import { and, eq, lte, isNotNull, not, sql, inArray } from 'drizzle-orm'
+import { sendPushToUser } from '@/lib/push'
 
 export const maxDuration = 60
 
@@ -71,5 +72,35 @@ export async function GET(req: NextRequest) {
     results.push({ projectId: project.id, invoiceNumber })
   }
 
-  return NextResponse.json({ processed: results.length, invoices: results })
+  // Warn about warranties expiring within 30 days
+  const in30Days = new Date()
+  in30Days.setDate(in30Days.getDate() + 30)
+  const in30 = in30Days.toISOString().split('T')[0]
+
+  const expiringWarranties = await db.select().from(projects)
+    .where(and(
+      isNotNull(projects.warrantyEndDate),
+      lte(projects.warrantyEndDate, in30),
+      not(eq(projects.status, 'cancelled'))
+    ))
+
+  for (const p of expiringWarranties) {
+    const admins = await db.select({ id: users.id }).from(users)
+      .where(and(
+        eq(users.companyId, p.companyId),
+        inArray(users.role, ['admin', 'office'])
+      ))
+
+    for (const admin of admins) {
+      await sendPushToUser(
+        admin.id,
+        p.companyId,
+        'Gewährleistung läuft ab',
+        `Projekt ${p.projectNumber}: Gewährleistung endet am ${new Date(p.warrantyEndDate!).toLocaleDateString('de-DE')}`,
+        { type: 'warranty_expiring', url: `/projects/${p.id}` }
+      )
+    }
+  }
+
+  return NextResponse.json({ processed: results.length, invoices: results, warrantyWarnings: expiringWarranties.length })
 }

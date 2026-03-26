@@ -276,6 +276,39 @@ export default function NewProjectPage() {
           </div>
         </div>
 
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-medium text-gray-300 uppercase tracking-wide">Gewährleistung</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">Gewährleistung ab</label>
+              <input
+                type="date"
+                {...register('warrantyStartDate')}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base text-white focus:outline-none focus:border-blue-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">Wird bei Abschluss automatisch gesetzt</p>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">Gewährleistung bis</label>
+              <input
+                type="date"
+                {...register('warrantyEndDate')}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base text-white focus:outline-none focus:border-blue-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">Standard: 5 Jahre ab Abschluss</p>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Gewährleistungshinweise</label>
+            <textarea
+              {...register('warrantyNotes')}
+              rows={2}
+              placeholder="z.B. Ausschlüsse, Bedingungen, Herstellergarantie..."
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base text-white focus:outline-none focus:border-blue-500 resize-none"
+            />
+          </div>
+        </div>
+
         {error && (
           <div className="bg-red-950 border border-red-800 rounded-lg px-4 py-3">
             <p className="text-red-400 text-sm">{error}</p>

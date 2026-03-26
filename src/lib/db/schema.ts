@@ -114,6 +114,9 @@ export const projects = pgTable('projects', {
   recurringInterval: text('recurring_interval'), // 'monthly' | 'quarterly' | 'yearly' | null
   recurringNextDate: date('recurring_next_date'),
   recurringEndDate: date('recurring_end_date'),
+  warrantyStartDate: date('warranty_start_date'),
+  warrantyEndDate: date('warranty_end_date'),
+  warrantyNotes: text('warranty_notes'),
   estimatedHours: numeric('estimated_hours', { precision: 8, scale: 2 }),
   notes: text('notes'),
   tags: text('tags').array().default(sql`'{}'::text[]`),

@@ -46,6 +46,7 @@ export default async function ProjectsPage() {
       locationCity: projects.locationCity,
       startDate: projects.startDate,
       recurringInterval: projects.recurringInterval,
+      warrantyEndDate: projects.warrantyEndDate,
       createdAt: projects.createdAt,
       customer: {
         id: customers.id,
@@ -100,6 +101,15 @@ export default async function ProjectsPage() {
                       🔄 {project.recurringInterval === 'monthly' ? 'Monatlich'
                         : project.recurringInterval === 'quarterly' ? 'Vierteljährlich'
                         : 'Jährlich'}
+                    </span>
+                  )}
+                  {project.warrantyEndDate && new Date(project.warrantyEndDate) < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      new Date(project.warrantyEndDate) < new Date()
+                        ? 'bg-red-900 text-red-300'
+                        : 'bg-amber-900 text-amber-300'
+                    }`}>
+                      🛡️ {new Date(project.warrantyEndDate) < new Date() ? 'Abgelaufen' : 'Läuft bald ab'}
                     </span>
                   )}
                 </div>

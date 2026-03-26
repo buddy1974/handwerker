@@ -176,6 +176,58 @@ export default async function ProjectDetailPage({
           </div>
         )}
 
+        {project.warrantyStartDate && (
+          <div className={`border rounded-xl p-4 ${
+            project.warrantyEndDate && new Date(project.warrantyEndDate) < new Date()
+              ? 'bg-red-950 border-red-800'
+              : new Date(project.warrantyEndDate ?? '') < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+              ? 'bg-amber-950 border-amber-800'
+              : 'bg-green-950 border-green-800'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 font-medium text-sm">
+                🛡️ <span className={
+                  project.warrantyEndDate && new Date(project.warrantyEndDate) < new Date()
+                    ? 'text-red-300'
+                    : new Date(project.warrantyEndDate ?? '') < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+                    ? 'text-amber-300'
+                    : 'text-green-300'
+                }>
+                  {project.warrantyEndDate && new Date(project.warrantyEndDate) < new Date()
+                    ? 'Gewährleistung abgelaufen'
+                    : 'Gewährleistung aktiv'}
+                </span>
+              </div>
+              {project.warrantyEndDate && new Date(project.warrantyEndDate) > new Date() && (
+                <span className="text-xs text-gray-400">
+                  {Math.ceil((new Date(project.warrantyEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} Tage verbleibend
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-gray-500 mb-0.5">Beginn</p>
+                <p className="text-gray-300">
+                  {new Date(project.warrantyStartDate).toLocaleDateString('de-DE')}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-0.5">Ende</p>
+                <p className="text-gray-300">
+                  {project.warrantyEndDate
+                    ? new Date(project.warrantyEndDate).toLocaleDateString('de-DE')
+                    : '—'}
+                </p>
+              </div>
+            </div>
+            {project.warrantyNotes && (
+              <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700">
+                {project.warrantyNotes}
+              </p>
+            )}
+          </div>
+        )}
+
         {project.description && (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Beschreibung</h2>
