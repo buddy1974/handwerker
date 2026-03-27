@@ -4,9 +4,11 @@ import { customers } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import Link from 'next/link'
 import { Plus, Building2, User } from 'lucide-react'
+import { t, type Locale } from '@/lib/i18n'
 
 export default async function CustomersPage() {
   const session = await auth()
+  const locale = (session?.user?.locale ?? 'de') as Locale
 
   const rows = await db
     .select()
@@ -21,24 +23,24 @@ export default async function CustomersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Kunden</h1>
-          <p className="text-gray-400 text-sm mt-1">{rows.length} Kunden gesamt</p>
+          <h1 className="text-2xl font-bold text-white">{t(locale, 'customers')}</h1>
+          <p className="text-gray-400 text-sm mt-1">{rows.length} {locale === 'en' ? 'Total Customers' : 'Kunden gesamt'}</p>
         </div>
         <Link
           href="/customers/new"
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
           <Plus size={16} />
-          Neuer Kunde
+          {t(locale, 'newCustomer')}
         </Link>
       </div>
 
       {rows.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
           <Building2 size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Noch keine Kunden angelegt.</p>
+          <p className="text-sm">{locale === 'en' ? 'No customers yet.' : 'Noch keine Kunden angelegt.'}</p>
           <Link href="/customers/new" className="text-blue-400 text-sm hover:underline mt-2 inline-block">
-            Ersten Kunden erstellen
+            {locale === 'en' ? 'Create first customer' : 'Ersten Kunden erstellen'}
           </Link>
         </div>
       ) : (
@@ -67,7 +69,9 @@ export default async function CustomersPage() {
                   <p className="text-gray-500 text-xs">{customer.addressCity}</p>
                 )}
                 <p className="text-gray-600 text-xs">
-                  {customer.type === 'business' ? 'Firma' : 'Privat'}
+                  {customer.type === 'business'
+                    ? (locale === 'en' ? 'Business' : 'Firma')
+                    : (locale === 'en' ? 'Private' : 'Privat')}
                 </p>
               </div>
             </Link>

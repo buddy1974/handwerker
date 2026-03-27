@@ -4,12 +4,7 @@ import { serviceReports, projects } from '@/lib/db/schema'
 import { eq, desc, and } from 'drizzle-orm'
 import Link from 'next/link'
 import { Plus, FileText } from 'lucide-react'
-
-const statusLabel: Record<string, string> = {
-  draft: 'Entwurf',
-  submitted: 'Eingereicht',
-  approved: 'Genehmigt',
-}
+import { t, type Locale } from '@/lib/i18n'
 
 const statusColor: Record<string, string> = {
   draft: 'bg-gray-800 text-gray-400',
@@ -19,6 +14,13 @@ const statusColor: Record<string, string> = {
 
 export default async function ReportsPage() {
   const session = await auth()
+  const locale = (session?.user?.locale ?? 'de') as Locale
+
+  const statusLabel: Record<string, string> = locale === 'en' ? {
+    draft: 'Draft', submitted: 'Submitted', approved: 'Approved',
+  } : {
+    draft: 'Entwurf', submitted: 'Eingereicht', approved: 'Genehmigt',
+  }
 
   const rows = await db
     .select({
@@ -42,22 +44,22 @@ export default async function ReportsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Berichte</h1>
-          <p className="text-gray-400 text-sm mt-1">{rows.length} Berichte gesamt</p>
+          <h1 className="text-2xl font-bold text-white">{t(locale, 'reports')}</h1>
+          <p className="text-gray-400 text-sm mt-1">{rows.length} {locale === 'en' ? 'Total Reports' : 'Berichte gesamt'}</p>
         </div>
         <Link
           href="/reports/new"
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
           <Plus size={16} />
-          Neuer Bericht
+          {t(locale, 'newReport')}
         </Link>
       </div>
 
       {rows.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
           <FileText size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Noch keine Berichte erstellt.</p>
+          <p className="text-sm">{locale === 'en' ? 'No reports yet.' : 'Noch keine Berichte erstellt.'}</p>
         </div>
       ) : (
         <div className="grid gap-2">
@@ -73,7 +75,7 @@ export default async function ReportsPage() {
                   <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor[report.status ?? 'draft']}`}>
                     {statusLabel[report.status ?? 'draft']}
                   </span>
-                  {report.signedAt && <span className="text-xs text-green-400">✓ Unterschrift</span>}
+                  {report.signedAt && <span className="text-xs text-green-400">{locale === 'en' ? '✓ Signed' : '✓ Unterschrift'}</span>}
                 </div>
                 <p className="text-white font-medium text-sm truncate">{report.title}</p>
                 <p className="text-gray-500 text-xs truncate">{report.project?.title}</p>

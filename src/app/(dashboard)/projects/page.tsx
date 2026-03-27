@@ -4,14 +4,7 @@ import { projects, customers } from '@/lib/db/schema'
 import { eq, desc, and } from 'drizzle-orm'
 import Link from 'next/link'
 import { Plus, FolderOpen } from 'lucide-react'
-
-const statusLabel: Record<string, string> = {
-  draft: 'Entwurf',
-  active: 'Aktiv',
-  paused: 'Pausiert',
-  completed: 'Abgeschlossen',
-  cancelled: 'Abgebrochen',
-}
+import { t, type Locale } from '@/lib/i18n'
 
 const statusColor: Record<string, string> = {
   draft: 'bg-gray-800 text-gray-400',
@@ -19,12 +12,6 @@ const statusColor: Record<string, string> = {
   paused: 'bg-yellow-950 text-yellow-400',
   completed: 'bg-blue-950 text-blue-400',
   cancelled: 'bg-red-950 text-red-400',
-}
-
-const priorityLabel: Record<number, string> = {
-  1: 'Niedrig',
-  2: 'Normal',
-  3: 'Hoch',
 }
 
 const priorityColor: Record<number, string> = {
@@ -35,6 +22,19 @@ const priorityColor: Record<number, string> = {
 
 export default async function ProjectsPage() {
   const session = await auth()
+  const locale = (session?.user?.locale ?? 'de') as Locale
+
+  const statusLabel: Record<string, string> = locale === 'en' ? {
+    draft: 'Draft', active: 'Active', paused: 'Paused',
+    completed: 'Completed', cancelled: 'Cancelled',
+  } : {
+    draft: 'Entwurf', active: 'Aktiv', paused: 'Pausiert',
+    completed: 'Abgeschlossen', cancelled: 'Abgebrochen',
+  }
+
+  const priorityLabel: Record<number, string> = locale === 'en'
+    ? { 1: 'Low', 2: 'Normal', 3: 'High' }
+    : { 1: 'Niedrig', 2: 'Normal', 3: 'Hoch' }
 
   const rows = await db
     .select({
@@ -62,24 +62,24 @@ export default async function ProjectsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Projekte</h1>
-          <p className="text-gray-400 text-sm mt-1">{rows.length} Projekte gesamt</p>
+          <h1 className="text-2xl font-bold text-white">{t(locale, 'projects')}</h1>
+          <p className="text-gray-400 text-sm mt-1">{rows.length} {locale === 'en' ? 'Total Projects' : 'Projekte gesamt'}</p>
         </div>
         <Link
           href="/projects/new"
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
           <Plus size={16} />
-          Neues Projekt
+          {t(locale, 'newProject')}
         </Link>
       </div>
 
       {rows.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
           <FolderOpen size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Noch keine Projekte angelegt.</p>
+          <p className="text-sm">{locale === 'en' ? 'No projects yet.' : 'Noch keine Projekte angelegt.'}</p>
           <Link href="/projects/new" className="text-blue-400 text-sm hover:underline mt-2 inline-block">
-            Erstes Projekt erstellen
+            {locale === 'en' ? 'Create first project' : 'Erstes Projekt erstellen'}
           </Link>
         </div>
       ) : (
@@ -98,9 +98,11 @@ export default async function ProjectsPage() {
                   </span>
                   {project.recurringInterval && (
                     <span className="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded-full">
-                      🔄 {project.recurringInterval === 'monthly' ? 'Monatlich'
-                        : project.recurringInterval === 'quarterly' ? 'Vierteljährlich'
-                        : 'Jährlich'}
+                      🔄 {project.recurringInterval === 'monthly'
+                        ? t(locale, 'recurringMonthly')
+                        : project.recurringInterval === 'quarterly'
+                        ? t(locale, 'recurringQuarterly')
+                        : t(locale, 'recurringYearly')}
                     </span>
                   )}
                   {project.warrantyEndDate && new Date(project.warrantyEndDate) < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) && (
@@ -109,7 +111,9 @@ export default async function ProjectsPage() {
                         ? 'bg-red-900 text-red-300'
                         : 'bg-amber-900 text-amber-300'
                     }`}>
-                      🛡️ {new Date(project.warrantyEndDate) < new Date() ? 'Abgelaufen' : 'Läuft bald ab'}
+                      🛡️ {new Date(project.warrantyEndDate) < new Date()
+                        ? (locale === 'en' ? 'Expired' : 'Abgelaufen')
+                        : (locale === 'en' ? 'Expiring soon' : 'Läuft bald ab')}
                     </span>
                   )}
                 </div>
