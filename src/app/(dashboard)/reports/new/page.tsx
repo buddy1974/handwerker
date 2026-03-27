@@ -12,18 +12,11 @@ import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import AIWriteButton from '@/components/ui/AIWriteButton'
+import { getChecklistForTrade } from '@/lib/trade-checklists'
 
 const SignatureCanvas = dynamic(() => import('@/components/field/SignatureCanvas'), { ssr: false })
 
 type Project = { id: string; title: string; projectNumber: string }
-
-const DEFAULT_CHECKLIST = [
-  'Schutzausrüstung getragen',
-  'Arbeitsfläche gesichert',
-  'Qualitätskontrolle durchgeführt',
-  'Materialien ordentlich entsorgt',
-  'Arbeitsbereich aufgeräumt',
-]
 
 export default function NewReportPage() {
   const router = useRouter()
@@ -32,10 +25,12 @@ export default function NewReportPage() {
   const [error, setError] = useState<string | null>(null)
   const [showSignature, setShowSignature] = useState(false)
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null)
+  const [trade, setTrade] = useState<string | null>(null)
   const [checklistItems, setChecklistItems] = useState(
-    DEFAULT_CHECKLIST.map(label => ({ label, isChecked: false, notes: '' }))
+    getChecklistForTrade(null).map(label => ({ label, isChecked: false, notes: '' }))
   )
   const [newChecklistItem, setNewChecklistItem] = useState('')
+  const [checklistLoading, setChecklistLoading] = useState(false)
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(createReportSchema),
@@ -48,7 +43,39 @@ export default function NewReportPage() {
 
   useEffect(() => {
     fetch('/api/projects').then(r => r.json()).then(setProjectsList).catch(() => {})
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(settings => {
+        const t = settings.trade ?? null
+        setTrade(t)
+        setChecklistItems(getChecklistForTrade(t).map(label => ({ label, isChecked: false, notes: '' })))
+      })
+      .catch(() => {})
   }, [])
+
+  const generateChecklist = async () => {
+    const selectedId = watch('projectId')
+    const selectedProject = projectsList.find(p => p.id === selectedId)
+    setChecklistLoading(true)
+    try {
+      const res = await fetch('/api/ai/checklist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectTitle: selectedProject?.title ?? '',
+          projectDescription: watch('workDone'),
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setChecklistItems(data.items.map((label: string) => ({ label, isChecked: false, notes: '' })))
+      }
+    } catch {
+      // silent fail
+    } finally {
+      setChecklistLoading(false)
+    }
+  }
 
   const onSubmit = async (data: FormValues) => {
     setLoading(true)
@@ -142,7 +169,19 @@ export default function NewReportPage() {
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Checkliste</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+              Checkliste{trade ? ` (${trade})` : ''}
+            </h2>
+            <button
+              type="button"
+              onClick={generateChecklist}
+              disabled={checklistLoading}
+              className="flex items-center gap-1.5 text-xs bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg transition-colors"
+            >
+              {checklistLoading ? '⏳ Generiere...' : '🤖 KI-Checkliste'}
+            </button>
+          </div>
           {checklistItems.map((item, i) => (
             <div key={i} className="flex items-center gap-3">
               <input
