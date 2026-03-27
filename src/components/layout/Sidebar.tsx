@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import {
   LayoutDashboard, Users, FolderOpen, Clock,
-  FileText, Receipt, FilePlus, Settings, Tablet, Menu, X, Calendar,
+  FileText, Receipt, FilePlus, Settings, Tablet, Menu, X, Calendar, LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { t, type Locale } from '@/lib/i18n'
@@ -80,6 +80,14 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
             {label}
           </Link>
         ))}
+        <div className="border-t border-gray-800 my-2" />
+        <button
+          onClick={() => { signOut({ callbackUrl: '/login' }); onClick?.() }}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-950 transition-colors text-sm font-medium"
+        >
+          <LogOut size={18} />
+          <span>{locale === 'en' ? 'Log Out' : 'Abmelden'}</span>
+        </button>
       </div>
     </>
   )
