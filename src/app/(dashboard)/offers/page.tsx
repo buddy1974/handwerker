@@ -4,11 +4,9 @@ import { offers, customers } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import Link from 'next/link'
 import { Plus, FilePlus } from 'lucide-react'
-import { formatEur } from '@/lib/utils/money'
+import { formatCurrency } from '@/lib/utils/money'
+import { t, type Locale } from '@/lib/i18n'
 
-const statusLabel: Record<string, string> = {
-  draft: 'Entwurf', sent: 'Versendet', accepted: 'Angenommen', rejected: 'Abgelehnt', expired: 'Abgelaufen',
-}
 const statusColor: Record<string, string> = {
   draft: 'bg-gray-800 text-gray-400',
   sent: 'bg-blue-950 text-blue-400',
@@ -19,6 +17,13 @@ const statusColor: Record<string, string> = {
 
 export default async function OffersPage() {
   const session = await auth()
+  const locale = (session?.user?.locale ?? 'de') as Locale
+
+  const statusLabel: Record<string, string> = locale === 'en' ? {
+    draft: 'Draft', sent: 'Sent', accepted: 'Accepted', rejected: 'Rejected', expired: 'Expired',
+  } : {
+    draft: 'Entwurf', sent: 'Versendet', accepted: 'Angenommen', rejected: 'Abgelehnt', expired: 'Abgelaufen',
+  }
 
   const rows = await db
     .select({
@@ -39,17 +44,17 @@ export default async function OffersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Angebote</h1>
-          <p className="text-gray-400 text-sm mt-1">{rows.length} Angebote gesamt</p>
+          <h1 className="text-2xl font-bold text-white">{t(locale, 'offers')}</h1>
+          <p className="text-gray-400 text-sm mt-1">{rows.length} {locale === 'en' ? 'Total Quotes' : 'Angebote gesamt'}</p>
         </div>
         <Link href="/offers/new" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-          <Plus size={16} />Neues Angebot
+          <Plus size={16} />{t(locale, 'newOffer')}
         </Link>
       </div>
       {rows.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
           <FilePlus size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Noch keine Angebote erstellt.</p>
+          <p className="text-sm">{locale === 'en' ? 'No quotes yet.' : 'Noch keine Angebote erstellt.'}</p>
         </div>
       ) : (
         <div className="grid gap-2">
@@ -64,7 +69,7 @@ export default async function OffersPage() {
                 <p className="text-gray-500 text-xs">{offer.customer?.name}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="text-white text-sm font-medium">{formatEur(Number(offer.total))}</p>
+                <p className="text-white text-sm font-medium">{formatCurrency(Number(offer.total), locale)}</p>
                 <p className="text-gray-500 text-xs">{offer.issueDate}</p>
               </div>
             </Link>

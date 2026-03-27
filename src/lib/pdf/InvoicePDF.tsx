@@ -3,6 +3,7 @@ import {
   Document, Page, Text, View, StyleSheet, Image,
 } from '@react-pdf/renderer'
 import type { PDFCompany, PDFCustomer, PDFItem } from './OfferPDF'
+import { formatCurrency, taxLabel } from '@/lib/utils/money'
 
 const styles = StyleSheet.create({
   page: {
@@ -61,9 +62,6 @@ const styles = StyleSheet.create({
   footerBrand: { fontSize: 6, color: '#d1d5db' },
 })
 
-function eur(val: number | string) {
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(val))
-}
 
 export type PDFInvoice = {
   invoiceNumber: string | null
@@ -80,6 +78,7 @@ export type PDFInvoice = {
   iban?: string | null
   bic?: string | null
   bankName?: string | null
+  locale?: 'de' | 'en'
 }
 
 export function InvoicePDF({
@@ -97,6 +96,11 @@ export function InvoicePDF({
   const iban = invoice.iban || company.iban
   const bic = invoice.bic || company.bic
   const bankName = invoice.bankName || company.bankName
+  const loc = invoice.locale ?? 'de'
+  const fmt = (val: number | string) => formatCurrency(Number(val), loc)
+  const fmtDate = (d: string | null | undefined) => d
+    ? (loc === 'en' ? new Date(d).toLocaleDateString('en-US') : new Date(d).toLocaleDateString('de-DE'))
+    : ''
 
   return (
     <Document>
@@ -117,7 +121,7 @@ export function InvoicePDF({
             {company.vatNumber && <Text style={styles.companyDetail}>USt-IdNr: {company.vatNumber}</Text>}
           </View>
           <View style={styles.docBlock}>
-            <Text style={[styles.docTitle, { color: brandColor }]}>RECHNUNG</Text>
+            <Text style={[styles.docTitle, { color: brandColor }]}>{loc === 'en' ? 'INVOICE' : 'RECHNUNG'}</Text>
             <Text style={styles.docNumber}>{invoice.invoiceNumber}</Text>
           </View>
         </View>
@@ -126,29 +130,29 @@ export function InvoicePDF({
 
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Rechnungsdatum</Text>
-            <Text style={styles.metaValue}>{invoice.issueDate}</Text>
+            <Text style={styles.metaLabel}>{loc === 'en' ? 'Issue Date' : 'Rechnungsdatum'}</Text>
+            <Text style={styles.metaValue}>{fmtDate(invoice.issueDate)}</Text>
           </View>
           {invoice.dueDate && (
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Fällig am</Text>
-              <Text style={styles.metaValue}>{invoice.dueDate}</Text>
+              <Text style={styles.metaLabel}>{loc === 'en' ? 'Due Date' : 'Fällig am'}</Text>
+              <Text style={styles.metaValue}>{fmtDate(invoice.dueDate)}</Text>
             </View>
           )}
           {invoice.deliveryDate && (
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Leistungsdatum</Text>
-              <Text style={styles.metaValue}>{invoice.deliveryDate}</Text>
+              <Text style={styles.metaLabel}>{loc === 'en' ? 'Delivery Date' : 'Leistungsdatum'}</Text>
+              <Text style={styles.metaValue}>{fmtDate(invoice.deliveryDate)}</Text>
             </View>
           )}
           <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Rechnungs-Nr.</Text>
+            <Text style={styles.metaLabel}>{loc === 'en' ? 'Invoice No.' : 'Rechnungs-Nr.'}</Text>
             <Text style={styles.metaValue}>{invoice.invoiceNumber}</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rechnungsempfänger</Text>
+          <Text style={styles.sectionTitle}>{loc === 'en' ? 'Bill To' : 'Rechnungsempfänger'}</Text>
           <Text style={styles.customerName}>{customer.name}</Text>
           {customer.addressStreet && <Text style={styles.customerDetail}>{customer.addressStreet}</Text>}
           {(customer.addressZip || customer.addressCity) && (
@@ -169,13 +173,13 @@ export function InvoicePDF({
 
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, styles.colPos]}>Pos</Text>
-            <Text style={[styles.tableHeaderText, styles.colDesc]}>Beschreibung</Text>
-            <Text style={[styles.tableHeaderText, styles.colQty]}>Menge</Text>
-            <Text style={[styles.tableHeaderText, styles.colUnit]}>Einh.</Text>
-            <Text style={[styles.tableHeaderText, styles.colPrice]}>Preis</Text>
-            <Text style={[styles.tableHeaderText, styles.colTax]}>MwSt</Text>
-            <Text style={[styles.tableHeaderText, styles.colTotal]}>Gesamt</Text>
+            <Text style={[styles.tableHeaderText, styles.colPos]}>{loc === 'en' ? 'No.' : 'Pos'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colDesc]}>{loc === 'en' ? 'Description' : 'Bezeichnung'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colQty]}>{loc === 'en' ? 'Qty' : 'Menge'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colUnit]}>{loc === 'en' ? 'Unit' : 'Einh.'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colPrice]}>{loc === 'en' ? 'Unit Price' : 'Preis'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colTax]}>{taxLabel(loc)}</Text>
+            <Text style={[styles.tableHeaderText, styles.colTotal]}>{loc === 'en' ? 'Total' : 'Gesamt'}</Text>
           </View>
           {items.map((item, i) => (
             <View key={i} style={styles.tableRow}>
@@ -186,37 +190,37 @@ export function InvoicePDF({
               </View>
               <Text style={[styles.cellText, styles.colQty]}>{item.quantity}</Text>
               <Text style={[styles.cellText, styles.colUnit]}>{item.unit}</Text>
-              <Text style={[styles.cellText, styles.colPrice]}>{eur(item.unitPrice ?? 0)}</Text>
+              <Text style={[styles.cellText, styles.colPrice]}>{fmt(item.unitPrice ?? 0)}</Text>
               <Text style={[styles.cellText, styles.colTax]}>{item.taxRate}%</Text>
-              <Text style={[styles.cellText, styles.colTotal]}>{eur(item.lineTotal ?? 0)}</Text>
+              <Text style={[styles.cellText, styles.colTotal]}>{fmt(item.lineTotal ?? 0)}</Text>
             </View>
           ))}
         </View>
 
         <View style={styles.totalsBlock}>
           <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>Nettobetrag</Text>
-            <Text style={styles.totalsValue}>{eur(invoice.subtotal ?? 0)}</Text>
+            <Text style={styles.totalsLabel}>{loc === 'en' ? 'Subtotal' : 'Nettobetrag'}</Text>
+            <Text style={styles.totalsValue}>{fmt(invoice.subtotal ?? 0)}</Text>
           </View>
           <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>MwSt</Text>
-            <Text style={styles.totalsValue}>{eur(invoice.taxAmount ?? 0)}</Text>
+            <Text style={styles.totalsLabel}>{taxLabel(loc)}</Text>
+            <Text style={styles.totalsValue}>{fmt(invoice.taxAmount ?? 0)}</Text>
           </View>
           <View style={[styles.totalsRow, { borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 4, marginTop: 4 }]}>
-            <Text style={styles.totalsFinalLabel}>Gesamtbetrag</Text>
-            <Text style={[styles.totalsFinalValue, { color: brandColor }]}>{eur(invoice.total ?? 0)}</Text>
+            <Text style={styles.totalsFinalLabel}>{loc === 'en' ? 'Total' : 'Gesamtbetrag'}</Text>
+            <Text style={[styles.totalsFinalValue, { color: brandColor }]}>{fmt(invoice.total ?? 0)}</Text>
           </View>
         </View>
 
         {invoice.paymentTerms && (
           <View style={styles.paymentNote}>
-            <Text style={styles.paymentText}>Zahlungsbedingung: {invoice.paymentTerms}</Text>
+            <Text style={styles.paymentText}>{loc === 'en' ? 'Payment Terms:' : 'Zahlungsbedingung:'} {invoice.paymentTerms}</Text>
           </View>
         )}
 
         {(iban || bankName) && (
           <View style={styles.bankBlock}>
-            <Text style={styles.bankTitle}>Bankverbindung</Text>
+            <Text style={styles.bankTitle}>{loc === 'en' ? 'Bank Details' : 'Bankverbindung'}</Text>
             {bankName && (
               <View style={styles.bankRow}>
                 <Text style={styles.bankLabel}>Bank</Text>
@@ -225,13 +229,13 @@ export function InvoicePDF({
             )}
             {iban && (
               <View style={styles.bankRow}>
-                <Text style={styles.bankLabel}>IBAN</Text>
+                <Text style={styles.bankLabel}>{loc === 'en' ? 'Account' : 'IBAN'}</Text>
                 <Text style={styles.bankValue}>{iban}</Text>
               </View>
             )}
             {bic && (
               <View style={styles.bankRow}>
-                <Text style={styles.bankLabel}>BIC</Text>
+                <Text style={styles.bankLabel}>{loc === 'en' ? 'Routing' : 'BIC'}</Text>
                 <Text style={styles.bankValue}>{bic}</Text>
               </View>
             )}

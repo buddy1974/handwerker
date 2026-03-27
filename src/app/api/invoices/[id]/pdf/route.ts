@@ -43,6 +43,7 @@ export async function GET(
     bic: (company.settings as Record<string, string>)?.bic,
     bankName: (company.settings as Record<string, string>)?.bankName,
   }
+  const companyLocale = ((company.settings as Record<string, string>)?.locale ?? 'de') as 'de' | 'en'
 
   const pdfCustomer: PDFCustomer = {
     name: customer?.name ?? '',
@@ -67,6 +68,7 @@ export async function GET(
     iban: invoice.iban,
     bic: invoice.bic,
     bankName: invoice.bankName,
+    locale: companyLocale,
   }
 
   const pdfItems: PDFItem[] = items.map((item, i) => ({
@@ -85,7 +87,7 @@ export async function GET(
     React.createElement(InvoicePDF, { company: pdfCompany, customer: pdfCustomer, invoice: pdfInvoice, items: pdfItems }) as any
   )
 
-  const filename = `Rechnung-${invoice.invoiceNumber ?? id}.pdf`
+  const filename = `${companyLocale === 'en' ? 'Invoice' : 'Rechnung'}-${invoice.invoiceNumber ?? id}.pdf`
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

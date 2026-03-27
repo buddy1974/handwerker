@@ -42,6 +42,7 @@ export async function GET(
     bic: (company.settings as Record<string, string>)?.bic,
     bankName: (company.settings as Record<string, string>)?.bankName,
   }
+  const companyLocale = ((company.settings as Record<string, string>)?.locale ?? 'de') as 'de' | 'en'
 
   const pdfCustomer: PDFCustomer = {
     name: customer?.name ?? '',
@@ -61,6 +62,7 @@ export async function GET(
     subtotal: offer.subtotal,
     taxAmount: offer.taxAmount,
     total: offer.total,
+    locale: companyLocale,
   }
 
   const pdfItems: PDFItem[] = items.map((item, i) => ({
@@ -79,7 +81,7 @@ export async function GET(
     React.createElement(OfferPDF, { company: pdfCompany, customer: pdfCustomer, offer: pdfOffer, items: pdfItems }) as any
   )
 
-  const filename = `Angebot-${offer.offerNumber ?? id}.pdf`
+  const filename = `${companyLocale === 'en' ? 'Quote' : 'Angebot'}-${offer.offerNumber ?? id}.pdf`
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

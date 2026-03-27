@@ -4,11 +4,9 @@ import { invoices, customers } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import Link from 'next/link'
 import { Plus, Receipt } from 'lucide-react'
-import { formatEur } from '@/lib/utils/money'
+import { formatCurrency } from '@/lib/utils/money'
+import { t, type Locale } from '@/lib/i18n'
 
-const statusLabel: Record<string, string> = {
-  draft: 'Entwurf', sent: 'Versendet', paid: 'Bezahlt', overdue: 'Überfällig', cancelled: 'Storniert',
-}
 const statusColor: Record<string, string> = {
   draft: 'bg-gray-800 text-gray-400',
   sent: 'bg-blue-950 text-blue-400',
@@ -19,6 +17,13 @@ const statusColor: Record<string, string> = {
 
 export default async function InvoicesPage() {
   const session = await auth()
+  const locale = (session?.user?.locale ?? 'de') as Locale
+
+  const statusLabel: Record<string, string> = locale === 'en' ? {
+    draft: 'Draft', sent: 'Sent', paid: 'Paid', overdue: 'Overdue', cancelled: 'Cancelled',
+  } : {
+    draft: 'Entwurf', sent: 'Versendet', paid: 'Bezahlt', overdue: 'Überfällig', cancelled: 'Storniert',
+  }
 
   const rows = await db
     .select({
@@ -41,17 +46,17 @@ export default async function InvoicesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Rechnungen</h1>
-          <p className="text-gray-400 text-sm mt-1">{rows.length} Rechnungen gesamt</p>
+          <h1 className="text-2xl font-bold text-white">{t(locale, 'invoices')}</h1>
+          <p className="text-gray-400 text-sm mt-1">{rows.length} {locale === 'en' ? 'Total Invoices' : 'Rechnungen gesamt'}</p>
         </div>
         <Link href="/invoices/new" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-          <Plus size={16} />Neue Rechnung
+          <Plus size={16} />{t(locale, 'newInvoice')}
         </Link>
       </div>
       {rows.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
           <Receipt size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Noch keine Rechnungen erstellt.</p>
+          <p className="text-sm">{locale === 'en' ? 'No invoices yet.' : 'Noch keine Rechnungen erstellt.'}</p>
         </div>
       ) : (
         <div className="grid gap-2">
@@ -61,14 +66,14 @@ export default async function InvoicesPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-gray-500 text-xs font-mono">{invoice.invoiceNumber}</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor[invoice.status ?? 'draft']}`}>{statusLabel[invoice.status ?? 'draft']}</span>
-                  {invoice.paidAt && <span className="text-xs text-green-400">✓ Bezahlt</span>}
+                  {invoice.paidAt && <span className="text-xs text-green-400">{locale === 'en' ? '✓ Paid' : '✓ Bezahlt'}</span>}
                 </div>
                 <p className="text-white font-medium text-sm truncate">{invoice.title}</p>
                 <p className="text-gray-500 text-xs">{invoice.customer?.name}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="text-white text-sm font-medium">{formatEur(Number(invoice.total))}</p>
-                <p className="text-gray-500 text-xs">{invoice.dueDate ? `Fällig: ${invoice.dueDate}` : invoice.issueDate}</p>
+                <p className="text-white text-sm font-medium">{formatCurrency(Number(invoice.total), locale)}</p>
+                <p className="text-gray-500 text-xs">{invoice.dueDate ? `${locale === 'en' ? 'Due:' : 'Fällig:'} ${invoice.dueDate}` : invoice.issueDate}</p>
               </div>
             </Link>
           ))}

@@ -2,6 +2,7 @@ import React from 'react'
 import {
   Document, Page, Text, View, StyleSheet, Image,
 } from '@react-pdf/renderer'
+import { formatCurrency, taxLabel } from '@/lib/utils/money'
 
 const styles = StyleSheet.create({
   page: {
@@ -217,9 +218,6 @@ const styles = StyleSheet.create({
   },
 })
 
-function eur(val: number | string) {
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(val))
-}
 
 export type PDFCompany = {
   name: string
@@ -265,6 +263,7 @@ export type PDFOffer = {
   subtotal: string | null
   taxAmount: string | null
   total: string | null
+  locale?: 'de' | 'en'
 }
 
 export function OfferPDF({
@@ -278,6 +277,12 @@ export function OfferPDF({
   offer: PDFOffer
   items: PDFItem[]
 }) {
+  const loc = offer.locale ?? 'de'
+  const fmt = (val: number | string) => formatCurrency(Number(val), loc)
+  const fmtDate = (d: string | null | undefined) => d
+    ? (loc === 'en' ? new Date(d).toLocaleDateString('en-US') : new Date(d).toLocaleDateString('de-DE'))
+    : ''
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -298,7 +303,7 @@ export function OfferPDF({
             {company.vatNumber && <Text style={styles.companyDetail}>USt-IdNr: {company.vatNumber}</Text>}
           </View>
           <View style={styles.docBlock}>
-            <Text style={[styles.docTitle, { color: company.brandColor || '#1a56db' }]}>ANGEBOT</Text>
+            <Text style={[styles.docTitle, { color: company.brandColor || '#1a56db' }]}>{loc === 'en' ? 'QUOTE' : 'ANGEBOT'}</Text>
             <Text style={styles.docNumber}>{offer.offerNumber}</Text>
           </View>
         </View>
@@ -308,24 +313,24 @@ export function OfferPDF({
         {/* META */}
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Datum</Text>
-            <Text style={styles.metaValue}>{offer.issueDate}</Text>
+            <Text style={styles.metaLabel}>{loc === 'en' ? 'Date' : 'Datum'}</Text>
+            <Text style={styles.metaValue}>{fmtDate(offer.issueDate)}</Text>
           </View>
           {offer.validUntil && (
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Gültig bis</Text>
-              <Text style={styles.metaValue}>{offer.validUntil}</Text>
+              <Text style={styles.metaLabel}>{loc === 'en' ? 'Valid Until' : 'Gültig bis'}</Text>
+              <Text style={styles.metaValue}>{fmtDate(offer.validUntil)}</Text>
             </View>
           )}
           <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Angebot</Text>
+            <Text style={styles.metaLabel}>{loc === 'en' ? 'Quote No.' : 'Angebot'}</Text>
             <Text style={styles.metaValue}>{offer.offerNumber}</Text>
           </View>
         </View>
 
         {/* CUSTOMER */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>An</Text>
+          <Text style={styles.sectionTitle}>{loc === 'en' ? 'To' : 'An'}</Text>
           <Text style={styles.customerName}>{customer.name}</Text>
           {customer.addressStreet && <Text style={styles.customerDetail}>{customer.addressStreet}</Text>}
           {(customer.addressZip || customer.addressCity) && (
@@ -345,13 +350,13 @@ export function OfferPDF({
         {/* TABLE */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, styles.colPos]}>Pos</Text>
-            <Text style={[styles.tableHeaderText, styles.colDesc]}>Beschreibung</Text>
-            <Text style={[styles.tableHeaderText, styles.colQty]}>Menge</Text>
-            <Text style={[styles.tableHeaderText, styles.colUnit]}>Einh.</Text>
-            <Text style={[styles.tableHeaderText, styles.colPrice]}>Preis</Text>
-            <Text style={[styles.tableHeaderText, styles.colTax]}>MwSt</Text>
-            <Text style={[styles.tableHeaderText, styles.colTotal]}>Gesamt</Text>
+            <Text style={[styles.tableHeaderText, styles.colPos]}>{loc === 'en' ? 'No.' : 'Pos'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colDesc]}>{loc === 'en' ? 'Description' : 'Bezeichnung'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colQty]}>{loc === 'en' ? 'Qty' : 'Menge'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colUnit]}>{loc === 'en' ? 'Unit' : 'Einh.'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colPrice]}>{loc === 'en' ? 'Unit Price' : 'Preis'}</Text>
+            <Text style={[styles.tableHeaderText, styles.colTax]}>{taxLabel(loc)}</Text>
+            <Text style={[styles.tableHeaderText, styles.colTotal]}>{loc === 'en' ? 'Total' : 'Gesamt'}</Text>
           </View>
 
           {items.map((item, i) => (
@@ -363,9 +368,9 @@ export function OfferPDF({
               </View>
               <Text style={[styles.cellText, styles.colQty]}>{item.quantity}</Text>
               <Text style={[styles.cellText, styles.colUnit]}>{item.unit}</Text>
-              <Text style={[styles.cellText, styles.colPrice]}>{eur(item.unitPrice ?? 0)}</Text>
+              <Text style={[styles.cellText, styles.colPrice]}>{fmt(item.unitPrice ?? 0)}</Text>
               <Text style={[styles.cellText, styles.colTax]}>{item.taxRate}%</Text>
-              <Text style={[styles.cellText, styles.colTotal]}>{eur(item.lineTotal ?? 0)}</Text>
+              <Text style={[styles.cellText, styles.colTotal]}>{fmt(item.lineTotal ?? 0)}</Text>
             </View>
           ))}
         </View>
@@ -373,16 +378,16 @@ export function OfferPDF({
         {/* TOTALS */}
         <View style={styles.totalsBlock}>
           <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>Nettobetrag</Text>
-            <Text style={styles.totalsValue}>{eur(offer.subtotal ?? 0)}</Text>
+            <Text style={styles.totalsLabel}>{loc === 'en' ? 'Subtotal' : 'Nettobetrag'}</Text>
+            <Text style={styles.totalsValue}>{fmt(offer.subtotal ?? 0)}</Text>
           </View>
           <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>MwSt</Text>
-            <Text style={styles.totalsValue}>{eur(offer.taxAmount ?? 0)}</Text>
+            <Text style={styles.totalsLabel}>{taxLabel(loc)}</Text>
+            <Text style={styles.totalsValue}>{fmt(offer.taxAmount ?? 0)}</Text>
           </View>
           <View style={[styles.totalsRow, { borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 4, marginTop: 4 }]}>
-            <Text style={styles.totalsFinalLabel}>Gesamtbetrag</Text>
-            <Text style={[styles.totalsFinalValue, { color: company.brandColor || '#1a56db' }]}>{eur(offer.total ?? 0)}</Text>
+            <Text style={styles.totalsFinalLabel}>{loc === 'en' ? 'Total' : 'Gesamtbetrag'}</Text>
+            <Text style={[styles.totalsFinalValue, { color: company.brandColor || '#1a56db' }]}>{fmt(offer.total ?? 0)}</Text>
           </View>
         </View>
 
@@ -392,7 +397,7 @@ export function OfferPDF({
         {/* BANK */}
         {(company.iban || company.bankName) && (
           <View style={styles.bankBlock}>
-            <Text style={styles.bankTitle}>Bankverbindung</Text>
+            <Text style={styles.bankTitle}>{loc === 'en' ? 'Bank Details' : 'Bankverbindung'}</Text>
             {company.bankName && (
               <View style={styles.bankRow}>
                 <Text style={styles.bankLabel}>Bank</Text>
@@ -401,13 +406,13 @@ export function OfferPDF({
             )}
             {company.iban && (
               <View style={styles.bankRow}>
-                <Text style={styles.bankLabel}>IBAN</Text>
+                <Text style={styles.bankLabel}>{loc === 'en' ? 'Account' : 'IBAN'}</Text>
                 <Text style={styles.bankValue}>{company.iban}</Text>
               </View>
             )}
             {company.bic && (
               <View style={styles.bankRow}>
-                <Text style={styles.bankLabel}>BIC</Text>
+                <Text style={styles.bankLabel}>{loc === 'en' ? 'Routing' : 'BIC'}</Text>
                 <Text style={styles.bankValue}>{company.bic}</Text>
               </View>
             )}
