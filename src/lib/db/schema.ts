@@ -34,6 +34,7 @@ export const companies = pgTable('companies', {
   addressStreet: text('address_street'),
   addressCity: text('address_city'),
   addressZip: text('address_zip'),
+  addressState: text('address_state'),
   addressCountry: text('address_country').default('DE'),
   vatNumber: text('vat_number'),
   logoUrl: text('logo_url'),

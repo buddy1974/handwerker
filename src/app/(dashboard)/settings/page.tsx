@@ -10,6 +10,7 @@ type CompanySettings = {
   addressStreet: string
   addressCity: string
   addressZip: string
+  addressState: string
   addressCountry: string
   vatNumber: string
   trade: string
@@ -23,6 +24,22 @@ type CompanySettings = {
   brandColor: string
 }
 
+const US_STATES = [
+  ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],
+  ['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],
+  ['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],
+  ['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],
+  ['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],
+  ['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],
+  ['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],
+  ['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],
+  ['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],
+  ['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],
+  ['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],
+  ['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],
+  ['WI','Wisconsin'],['WY','Wyoming'],
+] as const
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<CompanySettings>({
     name: '',
@@ -31,6 +48,7 @@ export default function SettingsPage() {
     addressStreet: '',
     addressCity: '',
     addressZip: '',
+    addressState: '',
     addressCountry: 'DE',
     vatNumber: '',
     trade: '',
@@ -73,6 +91,8 @@ export default function SettingsPage() {
     setLoading(false)
   }
 
+  const isEn = settings.locale === 'en'
+
   const field = (key: keyof CompanySettings, label: string, placeholder?: string, type = 'text') => (
     <div>
       <label className="block text-sm text-gray-300 mb-1">{label}</label>
@@ -86,33 +106,37 @@ export default function SettingsPage() {
     </div>
   )
 
-  if (fetching) return <div className="text-gray-500 text-sm">Laden...</div>
+  if (fetching) return <div className="text-gray-500 text-sm">{isEn ? 'Loading...' : 'Laden...'}</div>
 
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
         <Building2 size={20} className="text-gray-400" />
-        <h1 className="text-2xl font-bold text-white">Einstellungen</h1>
+        <h1 className="text-2xl font-bold text-white">{isEn ? 'Settings' : 'Einstellungen'}</h1>
       </div>
 
       <div className="space-y-5">
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Firmendaten</h2>
-          {field('name', 'Firmenname *', 'Musterfirma GmbH')}
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+            {isEn ? 'Company Details' : 'Firmendaten'}
+          </h2>
+          {field('name', isEn ? 'Company Name *' : 'Firmenname *', isEn ? 'Acme Inc.' : 'Musterfirma GmbH')}
           <div className="grid grid-cols-2 gap-4">
-            {field('email', 'E-Mail', 'info@firma.de', 'email')}
-            {field('phone', 'Telefon', '+49 211 123456')}
+            {field('email', 'Email', isEn ? 'info@company.com' : 'info@firma.de', 'email')}
+            {field('phone', isEn ? 'Phone' : 'Telefon', isEn ? '+1 212 555 0100' : '+49 211 123456')}
           </div>
-          {field('vatNumber', 'USt-IdNr. / Steuernummer', 'DE123456789')}
+          {field('vatNumber', isEn ? 'Tax ID / EIN' : 'USt-IdNr. / Steuernummer', isEn ? '12-3456789' : 'DE123456789')}
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Gewerk / Branche</label>
+            <label className="block text-sm text-gray-300 mb-1">
+              {isEn ? 'Trade / Industry' : 'Gewerk / Branche'}
+            </label>
             <select
               value={settings.trade}
               onChange={e => setSettings(prev => ({ ...prev, trade: e.target.value }))}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
             >
-              <option value="">— Bitte wählen —</option>
+              <option value="">{isEn ? '— Please select —' : '— Bitte wählen —'}</option>
               <option value="Maler">Maler &amp; Lackierer</option>
               <option value="Elektriker">Elektriker</option>
               <option value="Sanitär">Sanitär &amp; Heizung</option>
@@ -143,35 +167,60 @@ export default function SettingsPage() {
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Adresse</h2>
-          {field('addressStreet', 'Straße', 'Musterstraße 1')}
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+            {isEn ? 'Address' : 'Adresse'}
+          </h2>
+          {field('addressStreet', isEn ? 'Street' : 'Straße', isEn ? '123 Main St' : 'Musterstraße 1')}
           <div className="grid grid-cols-2 gap-4">
-            {field('addressZip', 'PLZ', '40210')}
-            {field('addressCity', 'Stadt', 'Düsseldorf')}
+            {field('addressZip', isEn ? 'ZIP Code' : 'PLZ', isEn ? '90210' : '40210')}
+            {field('addressCity', isEn ? 'City' : 'Stadt', isEn ? 'Los Angeles' : 'Düsseldorf')}
           </div>
+          {isEn && (
+            <div>
+              <label className="block text-sm text-gray-300 mb-1">State</label>
+              <select
+                value={settings.addressState ?? ''}
+                onChange={e => setSettings(s => ({ ...s, addressState: e.target.value }))}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+              >
+                <option value="">— Select State —</option>
+                {US_STATES.map(([code, name]) => (
+                  <option key={code} value={code}>{name}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Bankdaten (für Rechnungen)</h2>
-          {field('bankName', 'Bank', 'Deutsche Bank')}
-          {field('iban', 'IBAN', 'DE89 3704 0044 0532 0130 00')}
-          {field('bic', 'BIC', 'COBADEFFXXX')}
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+            {isEn ? 'Payment Details (for Invoices)' : 'Bankdaten (für Rechnungen)'}
+          </h2>
+          {field('bankName', isEn ? 'Bank Name' : 'Bankname', isEn ? 'Chase Bank' : 'Deutsche Bank')}
+          {field('iban', isEn ? 'Account Number' : 'IBAN', isEn ? '0001234567' : 'DE89 3704 0044 0532 0130 00')}
+          {field('bic', isEn ? 'Routing Number' : 'BIC', isEn ? '021000021' : 'COBADEFFXXX')}
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Dokumentennummern</h2>
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+            {isEn ? 'Document Numbering' : 'Dokumentennummern'}
+          </h2>
           <div className="grid grid-cols-2 gap-4">
-            {field('invoicePrefix', 'Rechnungsprefix', 'RE')}
-            {field('offerPrefix', 'Angebotsprefix', 'AN')}
+            {field('invoicePrefix', isEn ? 'Invoice Prefix' : 'Rechnungsprefix', 'RE')}
+            {field('offerPrefix', isEn ? 'Quote Prefix' : 'Angebotsprefix', 'AN')}
           </div>
-          <p className="text-gray-500 text-xs">Beispiel: RE → RE-0001, AN → AN-0001</p>
+          <p className="text-gray-500 text-xs">
+            {isEn ? 'Example: INV → INV-0001, QT → QT-0001' : 'Beispiel: RE → RE-0001, AN → AN-0001'}
+          </p>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
           <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Branding</h2>
           {field('logoUrl', 'Logo URL', 'https://...')}
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Markenfarbe</label>
+            <label className="block text-sm text-gray-300 mb-1">
+              {isEn ? 'Brand Color' : 'Markenfarbe'}
+            </label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -186,7 +235,9 @@ export default function SettingsPage() {
 
         {saved && (
           <div className="bg-green-950 border border-green-800 rounded-lg px-4 py-3">
-            <p className="text-green-400 text-sm">✓ Einstellungen gespeichert</p>
+            <p className="text-green-400 text-sm">
+              {isEn ? '✓ Settings saved' : '✓ Einstellungen gespeichert'}
+            </p>
           </div>
         )}
 
@@ -197,7 +248,9 @@ export default function SettingsPage() {
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium rounded-lg px-6 py-2 text-sm transition-colors"
           >
             <Save size={14} />
-            {loading ? 'Speichern...' : 'Einstellungen speichern'}
+            {loading
+              ? (isEn ? 'Saving...' : 'Speichern...')
+              : (isEn ? 'Save Settings' : 'Einstellungen speichern')}
           </button>
         </div>
       </div>
