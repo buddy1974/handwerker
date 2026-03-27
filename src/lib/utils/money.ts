@@ -22,6 +22,29 @@ export function calcTotals(items: { quantity: string; unitPrice: string; discoun
   }
 }
 
+export function formatCurrency(amount: number, locale: 'de' | 'en' = 'de'): string {
+  if (locale === 'en') {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+  }
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount)
+}
+
 export function formatEur(amount: number | string): string {
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(Number(amount))
+  return formatCurrency(Number(amount), 'de')
+}
+
+export function formatDate(dateStr: string, locale: 'de' | 'en' = 'de'): string {
+  const date = new Date(dateStr)
+  if (locale === 'en') {
+    return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
+  }
+  return date.toLocaleDateString('de-DE')
+}
+
+export function currencySymbol(locale: 'de' | 'en'): string {
+  return locale === 'en' ? '$' : '€'
+}
+
+export function taxLabel(locale: 'de' | 'en'): string {
+  return locale === 'en' ? 'Tax' : 'MwSt.'
 }

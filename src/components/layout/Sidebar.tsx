@@ -3,30 +3,40 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import {
   LayoutDashboard, Users, FolderOpen, Clock,
   FileText, Receipt, FilePlus, Settings, Tablet, Menu, X, Calendar,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { t, type Locale } from '@/lib/i18n'
 
-const nav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/customers', label: 'Kunden', icon: Users },
-  { href: '/projects', label: 'Projekte', icon: FolderOpen },
-  { href: '/projects/plantafel', label: 'Plantafel', icon: Calendar },
-  { href: '/time', label: 'Zeiterfassung', icon: Clock },
-  { href: '/reports', label: 'Berichte', icon: FileText },
-  { href: '/offers', label: 'Angebote', icon: FilePlus },
-  { href: '/invoices', label: 'Rechnungen', icon: Receipt },
-]
+function buildNav(locale: Locale) {
+  return [
+    { href: '/dashboard', label: t(locale, 'dashboard'), icon: LayoutDashboard },
+    { href: '/customers', label: t(locale, 'customers'), icon: Users },
+    { href: '/projects', label: t(locale, 'projects'), icon: FolderOpen },
+    { href: '/projects/plantafel', label: 'Plantafel', icon: Calendar },
+    { href: '/time', label: t(locale, 'timeTracking'), icon: Clock },
+    { href: '/reports', label: t(locale, 'reports'), icon: FileText },
+    { href: '/offers', label: t(locale, 'offers'), icon: FilePlus },
+    { href: '/invoices', label: t(locale, 'invoices'), icon: Receipt },
+  ]
+}
 
-const bottomNav = [
-  { href: '/field', label: 'Feldmodus', icon: Tablet },
-  { href: '/settings', label: 'Einstellungen', icon: Settings },
-]
+function buildBottomNav(locale: Locale) {
+  return [
+    { href: '/field', label: t(locale, 'fieldMode'), icon: Tablet },
+    { href: '/settings', label: t(locale, 'settings'), icon: Settings },
+  ]
+}
 
 function NavLinks({ onClick }: { onClick?: () => void }) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const locale = (session?.user?.locale ?? 'de') as Locale
+  const nav = buildNav(locale)
+  const bottomNav = buildBottomNav(locale)
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard'

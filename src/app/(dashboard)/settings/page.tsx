@@ -13,6 +13,7 @@ type CompanySettings = {
   addressCountry: string
   vatNumber: string
   trade: string
+  locale: string
   invoicePrefix: string
   offerPrefix: string
   iban: string
@@ -33,6 +34,7 @@ export default function SettingsPage() {
     addressCountry: 'DE',
     vatNumber: '',
     trade: '',
+    locale: 'de',
     invoicePrefix: 'RE',
     offerPrefix: 'AN',
     iban: '',
@@ -125,6 +127,18 @@ export default function SettingsPage() {
               <option value="Reinigung">Gebäudereinigung</option>
               <option value="Sonstiges">Sonstiges Handwerk</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Sprache / Language</label>
+            <select
+              value={settings.locale}
+              onChange={e => setSettings(s => ({ ...s, locale: e.target.value }))}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base text-white focus:outline-none focus:border-blue-500"
+            >
+              <option value="de">🇩🇪 Deutsch</option>
+              <option value="en">🇺🇸 English</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">Affects currency, date format, and UI language</p>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { db } from '@/lib/db'
-import { users } from '@/lib/db/schema'
+import { users, companies } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { compare } from 'bcryptjs'
 import { z } from 'zod'
@@ -24,6 +24,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as any).role
         token.firstName = (user as any).firstName
         token.lastName = (user as any).lastName
+
+        const [company] = await db
+          .select({ settings: companies.settings })
+          .from(companies)
+          .where(eq(companies.id, (user as any).companyId))
+        const settings = (company?.settings as Record<string, string>) ?? {}
+        token.locale = settings.locale ?? 'de'
       }
       return token
     },
@@ -34,6 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.role = token.role as string
         session.user.firstName = token.firstName as string
         session.user.lastName = token.lastName as string
+        session.user.locale = (token.locale as string) ?? 'de'
       }
       return session
     },
