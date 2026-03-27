@@ -81,7 +81,7 @@ export default async function DashboardPage() {
     <div>
       <div className="flex justify-end mb-4">
         <a href="/dashboard/analytics" className="text-blue-400 text-sm hover:underline flex items-center gap-1">
-          Auswertungen →
+          {locale === 'en' ? 'Analytics →' : 'Auswertungen →'}
         </a>
       </div>
       <div className="mb-8">
@@ -98,7 +98,7 @@ export default async function DashboardPage() {
             <FolderOpen size={16} className="text-gray-600" />
           </div>
           <p className="text-3xl font-bold text-white">{projectCount}</p>
-          <p className="text-green-400 text-xs mt-1">{activeProjectCount} aktiv</p>
+          <p className="text-green-400 text-xs mt-1">{activeProjectCount} {locale === 'en' ? 'active' : 'aktiv'}</p>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">

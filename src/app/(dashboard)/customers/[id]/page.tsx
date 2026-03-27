@@ -5,6 +5,7 @@ import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Building2, User, Mail, Phone, MapPin, FileText, Pencil, ExternalLink } from 'lucide-react'
+import { type Locale } from '@/lib/i18n'
 
 export default async function CustomerDetailPage({
   params,
@@ -12,6 +13,8 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string }>
 }) {
   const session = await auth()
+  const locale = (session?.user?.locale ?? 'de') as Locale
+  const isEn = locale === 'en'
   const { id } = await params
 
   const [customer] = await db
@@ -33,7 +36,7 @@ export default async function CustomerDetailPage({
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-white">{customer.name}</h1>
           <p className="text-gray-400 text-sm">
-            {customer.type === 'business' ? 'Firma' : 'Privatkunde'}
+            {customer.type === 'business' ? (isEn ? 'Business' : 'Firma') : (isEn ? 'Private' : 'Privatkunde')}
           </p>
         </div>
         <a
@@ -50,14 +53,14 @@ export default async function CustomerDetailPage({
           className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
         >
           <Pencil size={14} />
-          Bearbeiten
+          {isEn ? 'Edit' : 'Bearbeiten'}
         </Link>
       </div>
 
       <div className="space-y-4">
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Kontakt</h2>
+          <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">{isEn ? 'Contact' : 'Kontakt'}</h2>
           <div className="space-y-3">
             {customer.contactName && (
               <div className="flex items-center gap-3">
@@ -82,14 +85,14 @@ export default async function CustomerDetailPage({
               </div>
             )}
             {!customer.contactName && !customer.email && !customer.phone && (
-              <p className="text-gray-500 text-sm">Keine Kontaktdaten</p>
+              <p className="text-gray-500 text-sm">{isEn ? 'No contact details.' : 'Keine Kontaktdaten'}</p>
             )}
           </div>
         </div>
 
         {(customer.addressStreet || customer.addressCity) && (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Adresse</h2>
+            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">{isEn ? 'Address' : 'Adresse'}</h2>
             <div className="flex items-start gap-3">
               <MapPin size={15} className="text-gray-500 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-white">
@@ -104,7 +107,7 @@ export default async function CustomerDetailPage({
 
         {customer.notes && (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Notizen</h2>
+            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">{isEn ? 'Notes' : 'Notizen'}</h2>
             <div className="flex items-start gap-3">
               <FileText size={15} className="text-gray-500 flex-shrink-0 mt-0.5" />
               <p className="text-white text-sm whitespace-pre-wrap">{customer.notes}</p>
@@ -113,8 +116,8 @@ export default async function CustomerDetailPage({
         )}
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Projekte</h2>
-          <p className="text-gray-500 text-sm">Noch keine Projekte. Kommt in Phase 2.</p>
+          <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">{isEn ? 'Projects' : 'Projekte'}</h2>
+          <p className="text-gray-500 text-sm">{isEn ? 'No projects yet.' : 'Noch keine Projekte.'}</p>
         </div>
 
       </div>

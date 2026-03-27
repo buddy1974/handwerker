@@ -4,11 +4,13 @@ import { projects, invoices, customers, serviceReports } from '@/lib/db/schema'
 import { eq, count, sql, and } from 'drizzle-orm'
 import Link from 'next/link'
 import { ArrowLeft, TrendingUp, Users, FileText } from 'lucide-react'
-import { formatEur } from '@/lib/utils/money'
+import { formatCurrency } from '@/lib/utils/money'
+import { type Locale } from '@/lib/i18n'
 
 export default async function AnalyticsPage() {
   const session = await auth()
   const companyId = session!.user.companyId
+  const locale = (session?.user?.locale ?? 'de') as Locale
 
   const [
     totalRevenue,
@@ -76,13 +78,19 @@ export default async function AnalyticsPage() {
       .limit(10),
   ])
 
+  const isEn = locale === 'en'
+
   const statusColor: Record<string, string> = {
     draft: 'text-gray-400', sent: 'text-blue-400',
     paid: 'text-green-400', overdue: 'text-red-400', cancelled: 'text-gray-500',
   }
-  const statusLabel: Record<string, string> = {
+  const statusLabel: Record<string, string> = isEn ? {
+    draft: 'Draft', sent: 'Sent', paid: 'Paid', overdue: 'Overdue', cancelled: 'Cancelled',
+  } : {
     draft: 'Entwurf', sent: 'Versendet', paid: 'Bezahlt', overdue: 'Überfällig', cancelled: 'Storniert',
   }
+
+  const fmt = (amount: number) => formatCurrency(amount, locale)
 
   return (
     <div>
@@ -90,52 +98,54 @@ export default async function AnalyticsPage() {
         <Link href="/dashboard" className="text-gray-400 hover:text-white">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-2xl font-bold text-white">Auswertungen</h1>
+        <h1 className="text-2xl font-bold text-white">{isEn ? 'Analytics' : 'Auswertungen'}</h1>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-gray-400 text-sm">Gesamtumsatz</span>
+            <span className="text-gray-400 text-sm">{isEn ? 'Total Revenue' : 'Gesamtumsatz'}</span>
             <TrendingUp size={16} className="text-gray-600" />
           </div>
-          <p className="text-2xl font-bold text-white">{formatEur(totalRevenue)}</p>
-          <p className="text-green-400 text-xs mt-1">{formatEur(paidRevenue)} bezahlt</p>
+          <p className="text-2xl font-bold text-white">{fmt(totalRevenue)}</p>
+          <p className="text-green-400 text-xs mt-1">{fmt(paidRevenue)} {isEn ? 'paid' : 'bezahlt'}</p>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-gray-400 text-sm">Offen</span>
+            <span className="text-gray-400 text-sm">{isEn ? 'Outstanding' : 'Offen'}</span>
             <TrendingUp size={16} className="text-gray-600" />
           </div>
-          <p className="text-2xl font-bold text-white">{formatEur(pendingRevenue)}</p>
-          <p className="text-orange-400 text-xs mt-1">ausstehend</p>
+          <p className="text-2xl font-bold text-white">{fmt(pendingRevenue)}</p>
+          <p className="text-orange-400 text-xs mt-1">{isEn ? 'pending' : 'ausstehend'}</p>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-gray-400 text-sm">Projekte</span>
+            <span className="text-gray-400 text-sm">{isEn ? 'Projects' : 'Projekte'}</span>
             <FileText size={16} className="text-gray-600" />
           </div>
           <p className="text-2xl font-bold text-white">{projectStats.total}</p>
-          <p className="text-gray-500 text-xs mt-1">{Number(projectStats.active)} aktiv · {Number(projectStats.completed)} abgeschlossen</p>
+          <p className="text-gray-500 text-xs mt-1">
+            {Number(projectStats.active)} {isEn ? 'active' : 'aktiv'} · {Number(projectStats.completed)} {isEn ? 'completed' : 'abgeschlossen'}
+          </p>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-gray-400 text-sm">Kunden</span>
+            <span className="text-gray-400 text-sm">{isEn ? 'Customers' : 'Kunden'}</span>
             <Users size={16} className="text-gray-600" />
           </div>
           <p className="text-2xl font-bold text-white">{customerCount}</p>
-          <p className="text-gray-500 text-xs mt-1">{reportCount} Berichte</p>
+          <p className="text-gray-500 text-xs mt-1">{reportCount} {isEn ? 'reports' : 'Berichte'}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <h2 className="text-sm font-medium text-white mb-4">Top Kunden</h2>
+          <h2 className="text-sm font-medium text-white mb-4">{isEn ? 'Top Customers' : 'Top Kunden'}</h2>
           {topCustomers.length === 0 ? (
-            <p className="text-gray-500 text-sm">Noch keine Rechnungen</p>
+            <p className="text-gray-500 text-sm">{isEn ? 'No invoices yet.' : 'Noch keine Rechnungen'}</p>
           ) : (
             <div className="space-y-3">
               {topCustomers.map((c, i) => (
@@ -145,8 +155,8 @@ export default async function AnalyticsPage() {
                     <span className="text-white text-sm">{c.name}</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-white text-sm font-medium">{formatEur(c.total)}</p>
-                    <p className="text-gray-500 text-xs">{c.count} Rechnungen</p>
+                    <p className="text-white text-sm font-medium">{fmt(c.total)}</p>
+                    <p className="text-gray-500 text-xs">{c.count} {isEn ? 'invoices' : 'Rechnungen'}</p>
                   </div>
                 </div>
               ))}
@@ -155,7 +165,7 @@ export default async function AnalyticsPage() {
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <h2 className="text-sm font-medium text-white mb-4">Letzte Rechnungen</h2>
+          <h2 className="text-sm font-medium text-white mb-4">{isEn ? 'Recent Invoices' : 'Letzte Rechnungen'}</h2>
           <div className="space-y-2">
             {recentInvoices.map(inv => (
               <Link key={inv.id} href={`/invoices/${inv.id}`}
@@ -165,7 +175,7 @@ export default async function AnalyticsPage() {
                   <p className="text-gray-500 text-xs">{inv.customerName} · {inv.issueDate}</p>
                 </div>
                 <div className="text-right flex-shrink-0 ml-4">
-                  <p className="text-white text-sm">{formatEur(Number(inv.total))}</p>
+                  <p className="text-white text-sm">{fmt(Number(inv.total))}</p>
                   <p className={`text-xs ${statusColor[inv.status ?? 'draft']}`}>{statusLabel[inv.status ?? 'draft']}</p>
                 </div>
               </Link>

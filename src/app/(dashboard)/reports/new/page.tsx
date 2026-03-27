@@ -25,6 +25,7 @@ export default function NewReportPage() {
   const [error, setError] = useState<string | null>(null)
   const [showSignature, setShowSignature] = useState(false)
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null)
+  const [locale, setLocale] = useState<'de' | 'en'>('de')
   const [trade, setTrade] = useState<string | null>(null)
   const [checklistItems, setChecklistItems] = useState(
     getChecklistForTrade(null).map(label => ({ label, isChecked: false, notes: '' }))
@@ -48,6 +49,7 @@ export default function NewReportPage() {
       .then(settings => {
         const t = settings.trade ?? null
         setTrade(t)
+        setLocale(settings.locale === 'en' ? 'en' : 'de')
         setChecklistItems(getChecklistForTrade(t).map(label => ({ label, isChecked: false, notes: '' })))
       })
       .catch(() => {})
@@ -88,7 +90,7 @@ export default function NewReportPage() {
     })
 
     if (!res.ok) {
-      setError('Fehler beim Speichern.')
+      setError(locale === 'en' ? 'Error saving report.' : 'Fehler beim Speichern.')
       setLoading(false)
       return
     }
@@ -115,17 +117,17 @@ export default function NewReportPage() {
         <Link href="/reports" className="text-gray-400 hover:text-white">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-2xl font-bold text-white">Neuer Bericht</h1>
+        <h1 className="text-2xl font-bold text-white">{locale === 'en' ? 'New Report' : 'Neuer Bericht'}</h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Basis</h2>
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">{locale === 'en' ? 'Basics' : 'Basis'}</h2>
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Projekt *</label>
+            <label className="block text-sm text-gray-300 mb-1">{locale === 'en' ? 'Project *' : 'Projekt *'}</label>
             <select {...register('projectId')} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
-              <option value="">— Projekt auswählen —</option>
+              <option value="">{locale === 'en' ? '— Select project —' : '— Projekt auswählen —'}</option>
               {projectsList.map(p => <option key={p.id} value={p.id}>{p.projectNumber} — {p.title}</option>)}
             </select>
             {errors.projectId && <p className="text-red-400 text-xs mt-1">{errors.projectId.message}</p>}
@@ -142,7 +144,7 @@ export default function NewReportPage() {
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Arbeitsbeschreibung</h2>
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">{locale === 'en' ? 'Work Description' : 'Arbeitsbeschreibung'}</h2>
           <div>
             <label className="block text-sm text-gray-300 mb-1">Beschreibung</label>
             <textarea {...register('description')} rows={3} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 resize-none" placeholder="Was wurde gemacht?" />
@@ -232,24 +234,24 @@ export default function NewReportPage() {
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Kunde vor Ort</h2>
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">{locale === 'en' ? 'Customer On-Site' : 'Kunde vor Ort'}</h2>
           <div className="flex items-center gap-3">
             <input {...register('customerPresent')} type="checkbox" className="w-4 h-4 rounded accent-blue-600" />
-            <label className="text-white text-sm">Kunde war anwesend</label>
+            <label className="text-white text-sm">{locale === 'en' ? 'Customer was present' : 'Kunde war anwesend'}</label>
           </div>
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Name Ansprechpartner</label>
-            <input {...register('customerName')} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="Max Mustermann" />
+            <label className="block text-sm text-gray-300 mb-1">{locale === 'en' ? 'Contact Name' : 'Name Ansprechpartner'}</label>
+            <input {...register('customerName')} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" placeholder={locale === 'en' ? 'John Smith' : 'Max Mustermann'} />
           </div>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">Unterschrift</h2>
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wide">{locale === 'en' ? 'Signature' : 'Unterschrift'}</h2>
           {signatureDataUrl ? (
             <div>
               <img src={signatureDataUrl} alt="Unterschrift" className="border border-gray-700 rounded-lg max-h-24 bg-white" />
               <button type="button" onClick={() => setSignatureDataUrl(null)} className="text-red-400 text-xs mt-2">
-                Unterschrift löschen
+                {locale === 'en' ? 'Remove signature' : 'Unterschrift löschen'}
               </button>
             </div>
           ) : showSignature ? (
@@ -259,7 +261,7 @@ export default function NewReportPage() {
             />
           ) : (
             <button type="button" onClick={() => setShowSignature(true)} className="w-full border border-dashed border-gray-700 rounded-xl py-4 text-gray-400 text-sm hover:border-gray-500 transition-colors">
-              + Unterschrift hinzufügen
+              + {locale === 'en' ? 'Add signature' : 'Unterschrift hinzufügen'}
             </button>
           )}
         </div>
@@ -268,10 +270,10 @@ export default function NewReportPage() {
 
         <div className="flex gap-3 pb-8">
           <button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium rounded-lg px-6 py-2 text-sm">
-            {loading ? 'Speichern...' : 'Bericht speichern'}
+            {loading ? (locale === 'en' ? 'Saving...' : 'Speichern...') : (locale === 'en' ? 'Save Report' : 'Bericht speichern')}
           </button>
           <Link href="/reports" className="bg-gray-800 text-gray-300 rounded-lg px-6 py-2 text-sm">
-            Abbrechen
+            {locale === 'en' ? 'Cancel' : 'Abbrechen'}
           </Link>
         </div>
 

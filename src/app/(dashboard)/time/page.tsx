@@ -20,15 +20,16 @@ function formatDuration(minutes: number) {
   return `${h}h ${String(m).padStart(2, '0')}m`
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+function formatTime(iso: string, locale: 'de' | 'en') {
+  return new Date(iso).toLocaleTimeString(locale === 'en' ? 'en-US' : 'de-DE', { hour: '2-digit', minute: '2-digit' })
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+function formatDate(iso: string, locale: 'de' | 'en') {
+  return new Date(iso).toLocaleDateString(locale === 'en' ? 'en-US' : 'de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 export default function TimePage() {
+  const [locale, setLocale] = useState<'de' | 'en'>('de')
   const [projects, setProjects] = useState<Project[]>([])
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [running, setRunning] = useState<TimeEntry | null>(null)
@@ -37,6 +38,8 @@ export default function TimePage() {
   const [elapsed, setElapsed] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const isEn = locale === 'en'
 
   const load = useCallback(async () => {
     const [proj, entr, run] = await Promise.all([
@@ -52,7 +55,13 @@ export default function TimePage() {
     }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(s => { if (s?.locale === 'en') setLocale('en') })
+      .catch(() => {})
+  }, [load])
 
   useEffect(() => {
     if (!running) return
@@ -63,7 +72,10 @@ export default function TimePage() {
   }, [running])
 
   const start = async () => {
-    if (!selectedProject) { setError('Bitte Projekt auswählen'); return }
+    if (!selectedProject) {
+      setError(isEn ? 'Please select a project' : 'Bitte Projekt auswählen')
+      return
+    }
     setLoading(true)
     setError(null)
     let gps = null
@@ -90,7 +102,7 @@ export default function TimePage() {
     })
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error || 'Fehler beim Starten')
+      setError(data.error || (isEn ? 'Failed to start timer' : 'Fehler beim Starten'))
     } else {
       setTaskLabel('')
       await load()
@@ -119,16 +131,17 @@ export default function TimePage() {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   }
 
+  const todayStr = formatDate(new Date().toISOString(), locale)
   const totalToday = entries
-    .filter(e => e.stoppedAt && formatDate(e.startedAt) === formatDate(new Date().toISOString()))
+    .filter(e => e.stoppedAt && formatDate(e.startedAt, locale) === todayStr)
     .reduce((sum, e) => sum + (e.durationMin ?? 0), 0)
 
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Zeiterfassung</h1>
+        <h1 className="text-2xl font-bold text-white">{isEn ? 'Time Tracking' : 'Zeiterfassung'}</h1>
         <p className="text-gray-400 text-sm mt-1">
-          Heute: {formatDuration(totalToday)}
+          {isEn ? 'Today:' : 'Heute:'} {formatDuration(totalToday)}
         </p>
       </div>
 
@@ -137,11 +150,11 @@ export default function TimePage() {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-green-400 text-sm font-medium">Läuft</span>
+              <span className="text-green-400 text-sm font-medium">{isEn ? 'Running' : 'Läuft'}</span>
             </div>
             <div className="text-4xl font-mono font-bold text-white mb-2">{elapsedStr()}</div>
             <p className="text-gray-400 text-sm mb-1">
-              {running.project?.title ?? 'Unbekanntes Projekt'}
+              {running.project?.title ?? (isEn ? 'Unknown project' : 'Unbekanntes Projekt')}
             </p>
             {running.taskLabel && (
               <p className="text-gray-500 text-xs mb-4">{running.taskLabel}</p>
@@ -152,19 +165,19 @@ export default function TimePage() {
               className="flex items-center gap-2 mx-auto bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-medium rounded-lg px-6 py-2 text-sm transition-colors"
             >
               <Square size={14} />
-              Stoppen
+              {isEn ? 'Stop' : 'Stoppen'}
             </button>
           </div>
         ) : (
           <div className="space-y-3">
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Projekt *</label>
+              <label className="block text-sm text-gray-300 mb-1">{isEn ? 'Project *' : 'Projekt *'}</label>
               <select
                 value={selectedProject}
                 onChange={e => setSelectedProject(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
               >
-                <option value="">— Projekt auswählen —</option>
+                <option value="">{isEn ? '— Select project —' : '— Projekt auswählen —'}</option>
                 {projects.map(p => (
                   <option key={p.id} value={p.id}>
                     {p.projectNumber} — {p.title}
@@ -173,12 +186,12 @@ export default function TimePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1">Tätigkeit (optional)</label>
+              <label className="block text-sm text-gray-300 mb-1">{isEn ? 'Activity (optional)' : 'Tätigkeit (optional)'}</label>
               <input
                 value={taskLabel}
                 onChange={e => setTaskLabel(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                placeholder="z.B. Montage, Vorbereitung..."
+                placeholder={isEn ? 'e.g. Installation, Prep...' : 'z.B. Montage, Vorbereitung...'}
               />
             </div>
             {error && (
@@ -190,7 +203,7 @@ export default function TimePage() {
               className="flex items-center gap-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-medium rounded-lg px-6 py-2 text-sm transition-colors"
             >
               <Play size={14} />
-              Starten
+              {isEn ? 'Start' : 'Starten'}
             </button>
           </div>
         )}
@@ -199,11 +212,11 @@ export default function TimePage() {
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
         <h2 className="text-sm font-medium text-white mb-4 flex items-center gap-2">
           <Clock size={14} />
-          Letzte Einträge
+          {isEn ? 'Recent Entries' : 'Letzte Einträge'}
         </h2>
 
         {entries.filter(e => e.stoppedAt).length === 0 ? (
-          <p className="text-gray-500 text-sm">Noch keine abgeschlossenen Einträge.</p>
+          <p className="text-gray-500 text-sm">{isEn ? 'No entries yet.' : 'Noch keine abgeschlossenen Einträge.'}</p>
         ) : (
           <div className="space-y-2">
             {entries.filter(e => e.stoppedAt).slice(0, 20).map(entry => (
@@ -216,7 +229,7 @@ export default function TimePage() {
                     {entry.project?.title ?? '—'}
                   </p>
                   <p className="text-gray-500 text-xs">
-                    {entry.taskLabel || 'Keine Tätigkeit'} · {formatDate(entry.startedAt)}
+                    {entry.taskLabel || (isEn ? 'No activity' : 'Keine Tätigkeit')} · {formatDate(entry.startedAt, locale)}
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
@@ -224,7 +237,7 @@ export default function TimePage() {
                     {entry.durationMin != null ? formatDuration(entry.durationMin) : '—'}
                   </p>
                   <p className="text-gray-500 text-xs">
-                    {formatTime(entry.startedAt)} – {entry.stoppedAt ? formatTime(entry.stoppedAt) : ''}
+                    {formatTime(entry.startedAt, locale)} – {entry.stoppedAt ? formatTime(entry.stoppedAt, locale) : ''}
                   </p>
                 </div>
               </div>
