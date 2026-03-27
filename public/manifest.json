@@ -1,12 +1,12 @@
 {
   "name": "HandwerkOS",
   "short_name": "HandwerkOS",
-  "description": "Workflow-System für Handwerk und Serviceteams",
-  "start_url": "/field",
+  "description": "Field-to-office workflow for trade businesses",
+  "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0d0f10",
-  "theme_color": "#0d0f10",
-  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#1a56db",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -20,8 +20,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "screenshots": [],
-  "categories": ["business", "productivity"],
-  "lang": "de"
+  ]
 }
