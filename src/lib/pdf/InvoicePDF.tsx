@@ -78,6 +78,9 @@ export type PDFInvoice = {
   iban?: string | null
   bic?: string | null
   bankName?: string | null
+  depositAmount?: number | null
+  depositDate?: string | null
+  depositMethod?: string | null
   locale?: 'de' | 'en'
 }
 
@@ -210,6 +213,29 @@ export function InvoicePDF({
             <Text style={styles.totalsFinalLabel}>{loc === 'en' ? 'Total' : 'Gesamtbetrag'}</Text>
             <Text style={[styles.totalsFinalValue, { color: brandColor }]}>{fmt(invoice.total ?? 0)}</Text>
           </View>
+          {invoice.depositAmount != null && invoice.depositAmount > 0 && (
+            <View style={[styles.totalsRow, { marginTop: 4 }]}>
+              <Text style={styles.totalsLabel}>
+                {loc === 'en' ? 'Deposit received' : 'Anzahlung erhalten'}
+                {invoice.depositDate
+                  ? ` (${loc === 'en'
+                    ? new Date(invoice.depositDate).toLocaleDateString('en-US')
+                    : new Date(invoice.depositDate).toLocaleDateString('de-DE')})`
+                  : ''}
+              </Text>
+              <Text style={[styles.totalsValue, { color: '#10b981' }]}>
+                - {fmt(invoice.depositAmount)}
+              </Text>
+            </View>
+          )}
+          {invoice.depositAmount != null && invoice.depositAmount > 0 && (
+            <View style={[styles.totalsRow, { borderTopWidth: 1, borderTopColor: '#334155', paddingTop: 4, marginTop: 2 }]}>
+              <Text style={styles.totalsFinalLabel}>{loc === 'en' ? 'Balance due' : 'Restbetrag'}</Text>
+              <Text style={styles.totalsFinalValue}>
+                {fmt((Number(invoice.total ?? 0)) - (invoice.depositAmount ?? 0))}
+              </Text>
+            </View>
+          )}
         </View>
 
         {invoice.paymentTerms && (

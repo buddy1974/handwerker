@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -27,11 +27,50 @@ const US_STATES = [
   ['WI','Wisconsin'],['WY','Wyoming'],
 ] as const
 
+const compressImage = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new window.Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const MAX = 1200
+      let w = img.width, h = img.height
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round((h * MAX) / w); w = MAX }
+        else { w = Math.round((w * MAX) / h); h = MAX }
+      }
+      canvas.width = w
+      canvas.height = h
+      ctx?.drawImage(img, 0, 0, w, h)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', 0.75))
+    }
+    img.onerror = reject
+    img.src = url
+  })
+
+type AIContact = {
+  name?: string | null
+  company?: string | null
+  email?: string | null
+  phone?: string | null
+  addressStreet?: string | null
+  addressCity?: string | null
+  addressZip?: string | null
+}
+
 export default function NewCustomerPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [locale, setLocale] = useState<'de' | 'en'>('de')
+  const [scanLoading, setScanLoading] = useState(false)
+  const [scanSuccess, setScanSuccess] = useState(false)
+  const [showPasteInput, setShowPasteInput] = useState(false)
+  const [pasteText, setPasteText] = useState('')
+  const [pasteLoading, setPasteLoading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch('/api/settings')
@@ -40,10 +79,60 @@ export default function NewCustomerPage() {
       .catch(() => {})
   }, [])
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(createCustomerSchema),
     defaultValues: { type: 'business', addressCountry: locale === 'en' ? 'US' : 'DE', tags: [] },
   })
+
+  const fillFromAI = (data: AIContact) => {
+    if (data.company || data.name) setValue('name', data.company ?? data.name ?? '')
+    if (data.email) setValue('email', data.email)
+    if (data.phone) setValue('phone', data.phone)
+    if (data.addressStreet) setValue('addressStreet', data.addressStreet)
+    if (data.addressCity) setValue('addressCity', data.addressCity)
+    if (data.addressZip) setValue('addressZip', data.addressZip)
+    setScanSuccess(true)
+  }
+
+  const scanBusinessCard = async (file: File) => {
+    setScanLoading(true)
+    setScanSuccess(false)
+    try {
+      const dataUrl = await compressImage(file)
+      const base64 = dataUrl.split(',')[1]
+      const res = await fetch('/api/ai/business-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64 }),
+      })
+      if (res.ok) fillFromAI(await res.json())
+    } catch {
+      // silent fail
+    } finally {
+      setScanLoading(false)
+    }
+  }
+
+  const extractFromPaste = async () => {
+    if (!pasteText.trim()) return
+    setPasteLoading(true)
+    try {
+      const res = await fetch('/api/ai/paste-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: pasteText }),
+      })
+      if (res.ok) {
+        fillFromAI(await res.json())
+        setShowPasteInput(false)
+        setPasteText('')
+      }
+    } catch {
+      // silent fail
+    } finally {
+      setPasteLoading(false)
+    }
+  }
 
   const onSubmit = async (data: FormValues) => {
     setLoading(true)
@@ -73,6 +162,79 @@ export default function NewCustomerPage() {
         </Link>
         <h1 className="text-2xl font-bold text-white">{locale === 'en' ? 'New Customer' : 'Neuer Kunde'}</h1>
       </div>
+
+      {/* AI scan / paste buttons */}
+      <div className="mb-5 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={scanLoading}
+          className="flex items-center gap-2 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors"
+        >
+          {scanLoading ? '...' : '📷'} {locale === 'en' ? 'Scan Business Card' : 'Visitenkarte scannen'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowPasteInput(v => !v)}
+          className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-medium rounded-lg px-4 py-2 transition-colors"
+        >
+          📋 {locale === 'en' ? 'Paste Contact Info' : 'Kontaktdaten einfügen'}
+        </button>
+        {scanSuccess && (
+          <span className="flex items-center text-green-400 text-sm font-medium">
+            ✓ {locale === 'en' ? 'Card scanned' : 'Karte gescannt'}
+          </span>
+        )}
+      </div>
+
+      {showPasteInput && (
+        <div className="mb-5 bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+          <p className="text-xs text-gray-400">
+            {locale === 'en'
+              ? 'Paste any text with contact details (WhatsApp message, email signature, etc.)'
+              : 'Beliebigen Text mit Kontaktdaten einfügen (WhatsApp-Nachricht, E-Mail-Signatur usw.)'}
+          </p>
+          <textarea
+            value={pasteText}
+            onChange={e => setPasteText(e.target.value)}
+            rows={4}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 resize-none"
+            placeholder={locale === 'en'
+              ? 'Paste contact info here...'
+              : 'Kontaktdaten hier einfügen...'}
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={extractFromPaste}
+              disabled={pasteLoading || !pasteText.trim()}
+              className="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg px-4 py-2"
+            >
+              {pasteLoading ? '...' : (locale === 'en' ? 'Extract' : 'Extrahieren')}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowPasteInput(false); setPasteText('') }}
+              className="bg-gray-800 text-gray-300 rounded-lg px-4 py-2 text-sm"
+            >
+              {locale === 'en' ? 'Cancel' : 'Abbrechen'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={e => {
+          const file = e.target.files?.[0]
+          if (file) scanBusinessCard(file)
+          e.target.value = ''
+        }}
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 

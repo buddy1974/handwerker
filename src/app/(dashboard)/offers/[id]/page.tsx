@@ -1,11 +1,12 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { offers, offerItems, customers } from '@/lib/db/schema'
+import { offers, offerItems, customers, companies } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, FileDown } from 'lucide-react'
 import { formatEur } from '@/lib/utils/money'
+import { buildOfferWhatsApp } from '@/lib/whatsapp'
 import CreateInvoiceButton from './CreateInvoiceButton'
 import SendEmailButton from './SendEmailButton'
 
@@ -33,6 +34,20 @@ export default async function OfferDetailPage({
 
   const items = await db.select().from(offerItems).where(eq(offerItems.offerId, id)).orderBy(offerItems.sortOrder)
   const [customer] = await db.select().from(customers).where(eq(customers.id, offer.customerId))
+  const [companyData] = await db.select({ settings: companies.settings }).from(companies).where(eq(companies.id, session!.user.companyId))
+
+  const locale: 'de' | 'en' = ((companyData?.settings as { locale?: string } | null)?.locale === 'en') ? 'en' : 'de'
+
+  const waUrl = buildOfferWhatsApp(
+    {
+      offerNumber: offer.offerNumber,
+      total: offer.total,
+      validUntil: offer.validUntil,
+      items: items.map(item => ({ title: item.title, lineTotal: item.lineTotal })),
+    },
+    { name: customer?.name ?? '' },
+    locale,
+  )
 
   return (
     <div className="max-w-2xl">
@@ -51,6 +66,15 @@ export default async function OfferDetailPage({
         >
           <FileDown size={14} />
           PDF
+        </a>
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+        >
+          <span>💬</span>
+          WhatsApp
         </a>
         <SendEmailButton offerId={offer.id} defaultEmail={customer?.email ?? ''} />
         <CreateInvoiceButton offerId={offer.id} customerId={offer.customerId} projectId={offer.projectId ?? null} title={offer.title} items={items} />

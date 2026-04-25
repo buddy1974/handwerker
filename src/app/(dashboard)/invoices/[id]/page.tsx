@@ -1,11 +1,12 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { invoices, invoiceItems, customers } from '@/lib/db/schema'
+import { invoices, invoiceItems, customers, companies } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, FileDown } from 'lucide-react'
 import { formatEur } from '@/lib/utils/money'
+import { buildInvoiceWhatsApp } from '@/lib/whatsapp'
 import MarkPaidButton from './MarkPaidButton'
 import SendEmailButton from './SendEmailButton'
 
@@ -33,6 +34,22 @@ export default async function InvoiceDetailPage({
 
   const items = await db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, id)).orderBy(invoiceItems.sortOrder)
   const [customer] = await db.select().from(customers).where(eq(customers.id, invoice.customerId))
+  const [companyData] = await db.select({ settings: companies.settings }).from(companies).where(eq(companies.id, session!.user.companyId))
+
+  const locale: 'de' | 'en' = ((companyData?.settings as { locale?: string } | null)?.locale === 'en') ? 'en' : 'de'
+
+  const waUrl = buildInvoiceWhatsApp(
+    {
+      invoiceNumber: invoice.invoiceNumber,
+      total: invoice.total,
+      depositAmount: invoice.depositAmount,
+      dueDate: invoice.dueDate,
+      items: items.map(item => ({ title: item.title, lineTotal: item.lineTotal })),
+    },
+    { name: customer?.name ?? '' },
+    { iban: invoice.iban, bic: invoice.bic },
+    locale,
+  )
 
   return (
     <div className="max-w-2xl">
@@ -59,6 +76,15 @@ export default async function InvoiceDetailPage({
           <span>⚡</span>
           XRechnung
         </a>
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-lg px-3 py-1.5 transition-colors"
+        >
+          <span>💬</span>
+          WhatsApp
+        </a>
         <SendEmailButton invoiceId={invoice.id} defaultEmail={customer?.email ?? ''} />
         {invoice.status !== 'paid' && (
           <MarkPaidButton invoiceId={invoice.id} />
@@ -79,6 +105,12 @@ export default async function InvoiceDetailPage({
             {invoice.paidAt && <div className="flex justify-between"><span className="text-gray-400">Bezahlt am</span><span className="text-green-400">{new Date(invoice.paidAt).toLocaleDateString('de-DE')}</span></div>}
             {invoice.paymentTerms && <div className="flex justify-between"><span className="text-gray-400">Zahlungsbedingung</span><span className="text-white">{invoice.paymentTerms}</span></div>}
             {invoice.iban && <div className="flex justify-between"><span className="text-gray-400">IBAN</span><span className="text-white font-mono text-xs">{invoice.iban}</span></div>}
+            {invoice.depositAmount && Number(invoice.depositAmount) > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-400">{locale === 'en' ? 'Deposit received' : 'Anzahlung erhalten'}</span>
+                <span className="text-green-400">{formatEur(Number(invoice.depositAmount))}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -104,6 +136,18 @@ export default async function InvoiceDetailPage({
               <div className="flex justify-between text-sm"><span className="text-gray-400">Netto</span><span className="text-white">{formatEur(Number(invoice.subtotal))}</span></div>
               <div className="flex justify-between text-sm"><span className="text-gray-400">MwSt</span><span className="text-white">{formatEur(Number(invoice.taxAmount))}</span></div>
               <div className="flex justify-between text-sm font-bold pt-1"><span className="text-white">Gesamt</span><span className="text-blue-400 text-base">{formatEur(Number(invoice.total))}</span></div>
+              {invoice.depositAmount && Number(invoice.depositAmount) > 0 && (
+                <>
+                  <div className="flex justify-between text-sm pt-1">
+                    <span className="text-gray-400">{locale === 'en' ? 'Deposit received' : 'Anzahlung erhalten'}</span>
+                    <span className="text-green-400">- {formatEur(Number(invoice.depositAmount))}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold">
+                    <span className="text-white">{locale === 'en' ? 'Balance due' : 'Restbetrag'}</span>
+                    <span className="text-white">{formatEur(Number(invoice.total) - Number(invoice.depositAmount))}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

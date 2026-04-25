@@ -1,16 +1,17 @@
-export function calcLineTotal(quantity: string, unitPrice: string, discountPct: string): number {
+export function calcLineTotal(quantity: string, unitPrice: string, discountPct: string, itemType?: 'unit' | 'flat'): number {
+  if (itemType === 'flat') return Math.round((parseFloat(unitPrice) || 0) * 100) / 100
   const qty = parseFloat(quantity) || 0
   const price = parseFloat(unitPrice) || 0
   const disc = parseFloat(discountPct) || 0
   return Math.round(qty * price * (1 - disc / 100) * 100) / 100
 }
 
-export function calcTotals(items: { quantity: string; unitPrice: string; discountPct: string; taxRate: string }[]) {
+export function calcTotals(items: { quantity: string; unitPrice: string; discountPct: string; taxRate: string; itemType?: 'unit' | 'flat' }[]) {
   let subtotal = 0
   let taxAmount = 0
 
   for (const item of items) {
-    const lineTotal = calcLineTotal(item.quantity, item.unitPrice, item.discountPct)
+    const lineTotal = calcLineTotal(item.quantity, item.unitPrice, item.discountPct, item.itemType)
     subtotal += lineTotal
     taxAmount += Math.round(lineTotal * (parseFloat(item.taxRate) / 100) * 100) / 100
   }

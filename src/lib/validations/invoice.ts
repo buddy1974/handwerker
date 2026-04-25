@@ -28,6 +28,10 @@ export const createInvoiceSchema = z.object({
   bic: z.string().optional(),
   currency: z.string().default('EUR'),
   notes: z.string().optional(),
+  depositAmount: z.string().optional().default('0'),
+  depositDate: z.string().optional().nullable(),
+  depositMethod: z.string().optional().nullable(),
+  depositNote: z.string().optional().nullable(),
   items: z.array(invoiceItemSchema).default([]),
 })
 
